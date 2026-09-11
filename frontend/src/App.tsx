@@ -56,10 +56,6 @@ export default function App() {
   const [fireAlertDismissed, setFireAlertDismissed] = useState<boolean>(false);
   const [audioMuted, setAudioMuted] = useState<boolean>(false);
 
-  // Manual keypress simulator state ('e' = electric/voltage alert, 'f' = fire alert)
-  const [simulatedVoltageTrigger, setSimulatedVoltageTrigger] = useState<boolean>(false);
-  const [simulatedFireTrigger, setSimulatedFireTrigger] = useState<boolean>(false);
-
   // Persistent PostgreSQL alerts hook
   const {
     alerts: persistentAlerts,
@@ -107,9 +103,9 @@ export default function App() {
     mq136HazardPoles
   } = useHazardDetection(latestPole1, latestPole2, latestPole3, gasThresholds);
 
-  // Combine real hazard detection with keyboard triggered test emergencies
-  const isEffectiveVoltageEmergency = isVoltageEmergency || simulatedVoltageTrigger;
-  const isEffectiveFireEmergency = isFireEmergency || simulatedFireTrigger;
+  // Effective emergencies are derived purely from real sensor telemetry
+  const isEffectiveVoltageEmergency = isVoltageEmergency;
+  const isEffectiveFireEmergency = isFireEmergency;
 
   // Synthesized emergency audio hook
   const { startAlarm, stopAlarm } = useEmergencyAudio(audioMuted);
@@ -130,7 +126,7 @@ export default function App() {
     };
   }, [isEmergencySoundActive, audioMuted, startAlarm, stopAlarm]);
 
-  // Global Keyboard Shortcuts: 'e' for Electric Alert, 'f' for Fire Alert
+  // Global Keyboard Shortcuts: Escape to dismiss alerts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Ignore key events when typing inside inputs, textareas, selects, or editable fields
@@ -145,24 +141,8 @@ export default function App() {
         return;
       }
 
-      // 'e' or 'E' -> Trigger Electric Alert
-      if (event.key === 'e' || event.key === 'E') {
-        event.preventDefault();
-        setSimulatedVoltageTrigger(true);
-        setVoltageAlertDismissed(false);
-      }
-
-      // 'f' or 'F' -> Trigger Fire Alert
-      if (event.key === 'f' || event.key === 'F') {
-        event.preventDefault();
-        setSimulatedFireTrigger(true);
-        setFireAlertDismissed(false);
-      }
-
-      // 'Escape' -> Dismiss any active simulated emergencies
+      // 'Escape' -> Dismiss any active emergency dialogues
       if (event.key === 'Escape') {
-        setSimulatedVoltageTrigger(false);
-        setSimulatedFireTrigger(false);
         setVoltageAlertDismissed(true);
         setFireAlertDismissed(true);
         stopAlarm();
@@ -275,7 +255,7 @@ export default function App() {
             }
             isVoltageEmergency={isEffectiveVoltageEmergency}
             isFireEmergency={isEffectiveFireEmergency}
-            fireHazardPoles={simulatedFireTrigger ? [1] : fireHazardPoles}
+            fireHazardPoles={fireHazardPoles}
             floodHazardPoles={floodHazardPoles}
             tempHazardPoles={tempHazardPoles}
             gasHazardPoles={Array.from(new Set([...mq7HazardPoles, ...mq135HazardPoles, ...mq136HazardPoles]))}
@@ -423,34 +403,17 @@ export default function App() {
         voltageAlertDismissed={voltageAlertDismissed}
         onDismiss={() => {
           setVoltageAlertDismissed(true);
-          setSimulatedVoltageTrigger(false);
           stopAlarm();
         }}
         audioMuted={audioMuted}
         onToggleMute={() => setAudioMuted(!audioMuted)}
-        latestPole1={
-          simulatedVoltageTrigger
-            ? {
-                seq: latestPole1?.seq ?? 101,
-                timestamp: Date.now() / 1000,
-                pole_id: 1,
-                voltage: 238.4, // Hardcoded high lethal voltage leakage (238.4 V) on Pole 1 only
-                water_depth: 42.5, // Submerged water probes (42.5 cm)
-                is_upright: false, // Fallen pole trigger
-                current_ma: 1450,
-                temperature: 32.4,
-                humidity: 78.0,
-                status: 'CRITICAL_VOLTAGE'
-              }
-            : latestPole1
-        }
+        latestPole1={latestPole1}
         latestPole2={latestPole2}
         latestPole3={latestPole3}
         onNavigateToLocation={(poleId) => {
           setActivePoleTab(poleId as PoleId);
           setActiveView('map');
           setVoltageAlertDismissed(true);
-          setSimulatedVoltageTrigger(false);
           stopAlarm();
         }}
       />
@@ -461,36 +424,17 @@ export default function App() {
         fireAlertDismissed={fireAlertDismissed}
         onDismiss={() => {
           setFireAlertDismissed(true);
-          setSimulatedFireTrigger(false);
           stopAlarm();
         }}
         audioMuted={audioMuted}
         onToggleMute={() => setAudioMuted(!audioMuted)}
-        latestPole1={
-          simulatedFireTrigger
-            ? {
-                seq: latestPole1?.seq ?? 201,
-                timestamp: Date.now() / 1000,
-                pole_id: 1,
-                temperature: 84.6, // Hardcoded critical fire outbreak (84.6 °C) on Pole 1 only
-                humidity: 14.2, // Low humidity characteristic of raging blaze
-                mq7: 188.5, // Severe carbon monoxide accumulation
-                mq135: 340.0, // High smoke pollutants
-                mq136: 45.0,
-                voltage: 0.0,
-                water_depth: 0.0,
-                is_upright: true,
-                status: 'FIRE_ALARM'
-              }
-            : latestPole1
-        }
+        latestPole1={latestPole1}
         latestPole2={latestPole2}
         latestPole3={latestPole3}
         onNavigateToLocation={(poleId) => {
           setActivePoleTab(poleId as PoleId);
           setActiveView('map');
           setFireAlertDismissed(true);
-          setSimulatedFireTrigger(false);
           stopAlarm();
         }}
       />

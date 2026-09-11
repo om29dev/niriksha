@@ -55,9 +55,11 @@ export const FireEmergencyModal: React.FC<FireEmergencyModalProps> = ({
   // Filter for poles actively reporting fire conditions (temperature >= 60°C)
   const burningPoles = allPolePackets.filter((item) => (item.pkt?.temperature ?? 0.0) >= 60.0);
 
-  const displayPoles = burningPoles.length > 0
-    ? burningPoles
-    : [allPolePackets.reduce((max, cur) => ((cur.pkt?.temperature ?? 0) > (max.pkt?.temperature ?? 0) ? cur : max), allPolePackets[0])];
+  const displayPoles = burningPoles;
+
+  if (displayPoles.length === 0) {
+    return null;
+  }
 
   return (
     <>
