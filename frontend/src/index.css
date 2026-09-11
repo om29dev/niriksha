@@ -1,0 +1,149 @@
+/* Bundled Offline Inter Font */
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+
+:root {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #0f172a;
+  background-color: #f8fafc; /* Clean laboratory slate-50 */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  background-color: #f8fafc;
+  color: #0f172a;
+  min-height: 100vh;
+}
+
+/* Laboratory UI Utilities */
+.dashboard-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.lab-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.lab-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.badge-connected {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.badge-simulated {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.badge-warning {
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.badge-disconnected {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+/* High-Intensity Red Emergency Screen Flash & Alarm Beacon */
+@keyframes emergencyFlash {
+  0% {
+    box-shadow: inset 0 0 100px rgba(220, 38, 38, 0.7), inset 0 0 160px rgba(185, 28, 28, 0.5), 0 0 50px rgba(220, 38, 38, 0.5);
+    background-color: rgba(239, 68, 68, 0.28);
+  }
+  50% {
+    box-shadow: inset 0 0 200px rgba(220, 38, 38, 0.95), inset 0 0 300px rgba(153, 27, 27, 0.8), 0 0 100px rgba(239, 68, 68, 0.8);
+    background-color: rgba(220, 38, 38, 0.52);
+  }
+  100% {
+    box-shadow: inset 0 0 100px rgba(220, 38, 38, 0.7), inset 0 0 160px rgba(185, 28, 28, 0.5), 0 0 50px rgba(220, 38, 38, 0.5);
+    background-color: rgba(239, 68, 68, 0.28);
+  }
+}
+
+.screen-emergency-active {
+  animation: emergencyFlash 0.75s infinite ease-in-out;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+}
+
+/* Pulsing red beacon animation for electrocuted map pin */
+@keyframes mapRedBlink {
+  0% {
+    r: 20;
+    opacity: 1;
+    stroke-width: 3;
+  }
+  50% {
+    r: 46;
+    opacity: 0.85;
+    stroke-width: 6;
+  }
+  100% {
+    r: 68;
+    opacity: 0;
+    stroke-width: 1;
+  }
+}
+
+@keyframes pinRedPulse {
+  0% {
+    filter: drop-shadow(0 0 6px rgba(220, 38, 38, 0.9)) drop-shadow(0 0 14px rgba(239, 68, 68, 0.8));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 18px rgba(220, 38, 38, 1)) drop-shadow(0 0 32px rgba(239, 68, 68, 0.95));
+    transform: scale(1.08);
+  }
+  100% {
+    filter: drop-shadow(0 0 6px rgba(220, 38, 38, 0.9)) drop-shadow(0 0 14px rgba(239, 68, 68, 0.8));
+    transform: scale(1);
+  }
+}
+
+.map-electrocuted-pulse {
+  animation: pinRedPulse 0.8s infinite ease-in-out;
+  transform-origin: center;
+}
+
+.map-radar-blink {
+  animation: mapRedBlink 1.2s infinite ease-out;
+  pointer-events: none;
+}

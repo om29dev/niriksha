@@ -1,0 +1,89 @@
+# ==============================================================================
+# NIRIKSHA - Smart IoT Mesh Telemetry & Hazard Monitoring System
+# Root .gitignore
+# ==============================================================================
+
+# Operating System & IDE metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Environment Variables & Secrets (NEVER COMMIT SENSITIVE KEYS)
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+*.env
+
+# Database Local Files
+*.db
+*.sqlite
+*.sqlite3
+backend/iot_data.db
+
+# Python & FastAPI Artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node.js & React Frontend Artifacts
+node_modules/
+frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-debug.log*
+dist/
+frontend/dist/
+dist-ssr/
+frontend/dist-ssr/
+*.local
+
+# Microcontroller & Arduino Build Artifacts
+*.hex
+*.bin
+*.elf
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Application Runtime Logs
+logs/
+*.log
+backend/logs/
+frontend/logs/
