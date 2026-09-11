@@ -95,6 +95,7 @@ export default function App() {
     poleStateMap,
     downPoles,
     offlinePoles,
+    voltageHazardPoles,
     isVoltageEmergency,
     floodHazardPoles,
     tempHazardPoles,
@@ -376,6 +377,7 @@ export default function App() {
               downPoles={downPoles}
               offlinePoles={offlinePoles}
               poleStateMap={poleStateMap}
+              voltageHazardPoles={voltageHazardPoles}
               floodHazardPoles={floodHazardPoles}
               tempHazardPoles={tempHazardPoles}
               humidityHazardPoles={humidityHazardPoles}

@@ -55,10 +55,12 @@ export const VoltageEmergencyModal: React.FC<VoltageEmergencyModalProps> = ({
 
   const electrocutedPoles = allPolePackets.filter((item) => (item.pkt?.voltage ?? 0.0) > 5.0);
 
-  // If none directly >5.0 (safeguard fallback), show the pole with the highest voltage
-  const displayPoles = electrocutedPoles.length > 0
-    ? electrocutedPoles
-    : [allPolePackets.reduce((max, cur) => ((cur.pkt?.voltage ?? 0) > (max.pkt?.voltage ?? 0) ? cur : max), allPolePackets[0])];
+  // If none directly > 5.0V, do not display or fallback to safe (0V) poles
+  const displayPoles = electrocutedPoles;
+
+  if (displayPoles.length === 0) {
+    return null;
+  }
 
   return (
     <>

@@ -23,6 +23,7 @@ interface AlertsHistoryViewProps {
   downPoles: PoleId[];
   offlinePoles: PoleId[];
   poleStateMap: Record<PoleId, PoleState>;
+  voltageHazardPoles?: PoleId[];
   floodHazardPoles: PoleId[];
   tempHazardPoles: PoleId[];
   humidityHazardPoles: PoleId[];
@@ -46,6 +47,7 @@ interface AlertsHistoryViewProps {
 export const AlertsHistoryView: React.FC<AlertsHistoryViewProps> = ({
   downPoles,
   offlinePoles,
+  voltageHazardPoles = [],
   floodHazardPoles,
   tempHazardPoles,
   humidityHazardPoles,
@@ -79,12 +81,12 @@ export const AlertsHistoryView: React.FC<AlertsHistoryViewProps> = ({
 
   // Real-time calculated incidents (from live telemetry states)
   const realTimeIncidents: LiveIncidentItem[] = useMemo(() => [
-    ...(isVoltageEmergency ? [{
+    ...(isVoltageEmergency && voltageHazardPoles.length > 0 ? [{
       id: 'voltage',
       title: 'Water Electrification Emergency (>5V)',
       severity: 'critical' as const,
       description: 'Lethal voltage leakage detected on water probes. Siren activated.',
-      poles: [1] as PoleId[],
+      poles: voltageHazardPoles,
       icon: Zap
     }] : []),
     ...(downPoles.length > 0 ? [{

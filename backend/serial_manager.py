@@ -22,10 +22,14 @@ class SerialManager:
         port: Optional[str] = None,
         baudrate: int = 115200,
         broadcast_callback: Optional[Callable[[Dict[str, Any]], Any]] = None,
-        use_simulation: bool = True
+        use_simulation: bool = False
     ):
-        self.port = port
-        self.baudrate = baudrate
+        import os
+        # Prioritize explicit port, then SERIAL_PORT from .env
+        env_port = os.getenv("SERIAL_PORT", "").strip() or None
+        env_baud = int(os.getenv("SERIAL_BAUD", str(baudrate)))
+        self.port = port or env_port
+        self.baudrate = env_baud
         self.broadcast_callback = broadcast_callback
         self.use_simulation = use_simulation
         self.mock_sim = MockSimulator()
@@ -34,6 +38,13 @@ class SerialManager:
         self.serial_inst: Optional[serial.Serial] = None
         self.seq = 1
         self.last_error = ""
+
+        # Auto-select first available COM port if not simulating and no port provided
+        if not self.use_simulation and not self.port:
+            available_ports = self.list_available_ports()
+            if available_ports:
+                self.port = available_ports[0]["device"]
+                logger.info(f"Auto-selected physical COM port: {self.port}")
 
     @staticmethod
     def list_available_ports() -> List[Dict[str, str]]:
@@ -85,8 +96,26 @@ class SerialManager:
         energy_val = data.get("energy")
         freq_val = data.get("frequency")
         pf_val = data.get("pf")
-        mq7_val = data.get("mq7")
-        mq135_val = data.get("mq135")
+
+        # Handle gas sensors: either calibrated ppm or raw ADC values from firmware (air_quality_raw, co_raw)
+        if data.get("mq7") is not None:
+            mq7_val = data.get("mq7")
+        elif data.get("co_raw") is not None:
+            # Scaled ADC to approximate ppm estimate if raw ADC provided
+            raw_co = float(data.get("co_raw", 0))
+            mq7_val = round(raw_co * (100.0 / 4095.0), 1) if raw_co > 0 else 0.0
+        else:
+            mq7_val = None
+
+        if data.get("mq135") is not None:
+            mq135_val = data.get("mq135")
+        elif data.get("air_quality_raw") is not None:
+            # Scaled ADC (0-4095) to ppm (0-300 ppm)
+            raw_aq = float(data.get("air_quality_raw", 0))
+            mq135_val = round(raw_aq * (300.0 / 4095.0), 1) if raw_aq > 0 else 0.0
+        else:
+            mq135_val = None
+
         mq136_val = data.get("mq136")
         mq2_val = data.get("mq2")
 
@@ -161,10 +190,16 @@ class SerialManager:
 
             # Physical Serial Handling: SIMULATION IS STRICTLY STOPPED
             if not self.port:
-                self.is_connected = False
-                self.last_error = "No COM port selected"
-                await asyncio.sleep(1.0)
-                continue
+                # Try auto-detecting an available COM port dynamically
+                available = self.list_available_ports()
+                if available:
+                    self.port = available[0]["device"]
+                    logger.info(f"Dynamically discovered & connected COM port: {self.port}")
+                else:
+                    self.is_connected = False
+                    self.last_error = "No COM port selected or detected"
+                    await asyncio.sleep(2.0)
+                    continue
 
             try:
                 if not self.serial_inst or not self.serial_inst.is_open:
@@ -186,18 +221,26 @@ class SerialManager:
                 if raw_bytes:
                     raw_str = raw_bytes.decode("utf-8", errors="ignore").strip()
                     if raw_str:
-                        # Strip MESH_JSON: prefix if sent by Pole 3 Root Hub gateway
-                        if raw_str.startswith("MESH_JSON:"):
-                            raw_str = raw_str[len("MESH_JSON:"):].strip()
+                        # Resilient parsing: extract JSON payload if MESH_JSON prefix exists anywhere or starts with {
+                        json_str = None
+                        if "MESH_JSON:" in raw_str:
+                            json_str = raw_str.split("MESH_JSON:", 1)[1].strip()
+                        elif "{" in raw_str and "}" in raw_str:
+                            start_idx = raw_str.find("{")
+                            end_idx = raw_str.rfind("}") + 1
+                            json_str = raw_str[start_idx:end_idx]
 
-                        try:
-                            data = json.loads(raw_str)
-                            if isinstance(data, dict):
-                                source = f"SERIAL:{self.port}"
-                                normalized = self.normalize_mesh_packet(data, source=source)
-                                if self.broadcast_callback:
-                                    await self.broadcast_callback(normalized)
-                        except json.JSONDecodeError:
+                        if json_str:
+                            try:
+                                data = json.loads(json_str)
+                                if isinstance(data, dict):
+                                    source = f"SERIAL:{self.port}"
+                                    normalized = self.normalize_mesh_packet(data, source=source)
+                                    if self.broadcast_callback:
+                                        await self.broadcast_callback(normalized)
+                            except json.JSONDecodeError:
+                                logger.debug(f"JSONDecodeError for line: {raw_str}")
+                        else:
                             logger.debug(f"Non-JSON raw line received: {raw_str}")
                 await asyncio.sleep(0.01)
 
