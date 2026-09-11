@@ -9,7 +9,6 @@ import { OllamaConfigCard } from '../settings/OllamaConfigCard';
 import { DatabaseMaintenanceCard } from '../settings/DatabaseMaintenanceCard';
 
 interface SettingsViewProps {
-  useSimulation: boolean;
   selectedPort: string;
   ports: PortInfo[];
   onConfigUpdate: (simMode: boolean, portName: string) => void;
@@ -22,7 +21,6 @@ interface SettingsViewProps {
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
-  useSimulation,
   selectedPort,
   ports,
   onConfigUpdate,
@@ -34,10 +32,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   // Local state for physical & environmental hazard thresholds
   const [voltageLimit, setVoltageLimit] = useState<number>(5.0);
   const [floodThreshold, setFloodThreshold] = useState<number>(10.0);
+  const [tempThreshold, setTempThreshold] = useState<number>(initialGasThresholds.temp ?? DEFAULT_GAS_THRESHOLDS.temp);
+  const [humidityThreshold, setHumidityThreshold] = useState<number>(initialGasThresholds.humidity ?? DEFAULT_GAS_THRESHOLDS.humidity);
   const [mq7Threshold, setMq7Threshold] = useState<number>(initialGasThresholds.mq7);
   const [mq135Threshold, setMq135Threshold] = useState<number>(initialGasThresholds.mq135);
   const [mq136Threshold, setMq136Threshold] = useState<number>(initialGasThresholds.mq136);
-  const [mq2Threshold, setMq2Threshold] = useState<number>(initialGasThresholds.mq2);
   const [baudRate, setBaudRate] = useState<string>('115200');
   const [savedSuccess, setSavedSuccess] = useState<boolean>(false);
 
@@ -57,9 +56,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [isUpdatingOllama, setIsUpdatingOllama] = useState<boolean>(false);
 
   // MQTT configuration state
-  const [activeInputMode, setActiveInputMode] = useState<'mock' | 'serial' | 'mqtt'>(
-    useSimulation ? 'mock' : 'serial'
-  );
+  const [activeInputMode, setActiveInputMode] = useState<'serial' | 'mqtt'>('serial');
   const [mqttHost, setMqttHost] = useState<string>('192.168.1.100');
   const [mqttPort, setMqttPort] = useState<number>(1883);
   const [mqttTopic, setMqttTopic] = useState<string>('sensors/smartpole/#');
@@ -67,12 +64,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [mqttPassword, setMqttPassword] = useState<string>('••••••••');
   const [mqttStatusMsg, setMqttStatusMsg] = useState<{ text: string; isError: boolean } | null>(null);
   const [isConnectingMqtt, setIsConnectingMqtt] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (activeInputMode !== 'mqtt') {
-      setActiveInputMode(useSimulation ? 'mock' : 'serial');
-    }
-  }, [useSimulation, activeInputMode]);
 
   const handleSaveMqtt = (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,7 +160,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         mq7: mq7Threshold,
         mq135: mq135Threshold,
         mq136: mq136Threshold,
-        mq2: mq2Threshold
+        temp: tempThreshold,
+        humidity: humidityThreshold
       });
     }
     setSavedSuccess(true);
@@ -206,7 +198,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       }}>
         {/* Card 1: Input source */}
         <TelemetrySourceCard
-          useSimulation={useSimulation}
           selectedPort={selectedPort}
           ports={ports}
           activeInputMode={activeInputMode}
@@ -230,12 +221,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           onSaveMqtt={handleSaveMqtt}
         />
 
-        {/* Card 2: Voltage & Flood limits */}
+        {/* Card 2: Voltage, Flood & Environmental limits */}
         <VoltageFloodThresholdCard
           voltageLimit={voltageLimit}
           setVoltageLimit={setVoltageLimit}
           floodThreshold={floodThreshold}
           setFloodThreshold={setFloodThreshold}
+          tempThreshold={tempThreshold}
+          setTempThreshold={setTempThreshold}
+          humidityThreshold={humidityThreshold}
+          setHumidityThreshold={setHumidityThreshold}
           onApply={handleSaveThresholds}
         />
 
@@ -247,8 +242,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           setMq135Threshold={setMq135Threshold}
           mq136Threshold={mq136Threshold}
           setMq136Threshold={setMq136Threshold}
-          mq2Threshold={mq2Threshold}
-          setMq2Threshold={setMq2Threshold}
           onApply={handleSaveThresholds}
         />
 

@@ -48,28 +48,38 @@ export const AiChatWindow: React.FC<AiChatWindowProps> = ({
               onClick={onOpenSidebar}
               style={{
                 background: 'none',
-                border: 'none',
+                border: '1px solid #e2e8f0',
                 cursor: 'pointer',
-                color: '#64748b',
-                padding: '4px',
-                borderRadius: '4px',
+                color: '#475569',
+                padding: '6px',
+                borderRadius: '6px',
                 display: 'flex',
-                alignItems: 'center'
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease'
               }}
               title="Open chat history sidebar"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f1f5f9';
+                e.currentTarget.style.color = '#0f172a';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = '#475569';
+              }}
             >
-              <PanelLeftOpen style={{ width: '18px', height: '18px' }} />
+              <PanelLeftOpen style={{ width: '16px', height: '16px' }} />
             </button>
           )}
 
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Sparkles style={{ width: '16px', height: '16px', color: '#2563eb' }} />
-              <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', margin: 0 }}>
+              <Sparkles style={{ width: '15px', height: '15px', color: '#2563eb', flexShrink: 0 }} />
+              <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', margin: 0, lineHeight: '1.2' }}>
                 {activeSession?.title || 'NIRIKSHA AI Assistant'}
               </h3>
             </div>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>
+            <span style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', lineHeight: '1.2' }}>
               Offline telemetry reasoning & safety assistant
             </span>
           </div>

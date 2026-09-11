@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, WifiOff, Waves, Thermometer, Droplets, Wind, Flame } from 'lucide-react';
+import { AlertTriangle, WifiOff, Waves, Thermometer, Droplets, Wind } from 'lucide-react';
 import type { PoleId, PoleState } from '../types/telemetry';
 import { DEFAULT_GAS_THRESHOLDS, type GasThresholdConfig } from '../constants/gasThresholds';
 
@@ -15,7 +15,6 @@ interface HazardBannersProps {
   mq7HazardPoles: PoleId[];
   mq135HazardPoles: PoleId[];
   mq136HazardPoles: PoleId[];
-  mq2HazardPoles: PoleId[];
   gasThresholds?: Partial<GasThresholdConfig>;
 }
 
@@ -31,7 +30,6 @@ export const HazardBanners: React.FC<HazardBannersProps> = ({
   mq7HazardPoles,
   mq135HazardPoles,
   mq136HazardPoles,
-  mq2HazardPoles,
   gasThresholds: customGasThresholds
 }) => {
   const gasThresholds = { ...DEFAULT_GAS_THRESHOLDS, ...customGasThresholds };
@@ -284,7 +282,7 @@ export const HazardBanners: React.FC<HazardBannersProps> = ({
                 Thermal Warning Alert: {tempHazardPoles.map((id) => `Pole ${id}`).join(', ')}
               </strong>
               <p style={{ fontSize: '12px', color: '#c2410c', marginTop: '2px' }}>
-                Ambient thermal sensor reading exceeds 45°C. Possible enclosure overheating or heatwave.
+                Ambient thermal sensor reading exceeds {gasThresholds.temp}°C threshold. Possible enclosure overheating or heatwave.
               </p>
             </div>
           </div>
@@ -333,7 +331,7 @@ export const HazardBanners: React.FC<HazardBannersProps> = ({
                 High Atmospheric Humidity Alert: {humidityHazardPoles.map((id) => `Pole ${id}`).join(', ')}
               </strong>
               <p style={{ fontSize: '12px', color: '#15803d', marginTop: '2px' }}>
-                Relative humidity reading exceeds 85%. Condensation risk for electronics.
+                Relative humidity reading exceeds {gasThresholds.humidity}% threshold. Condensation risk for electronics.
               </p>
             </div>
           </div>
@@ -498,55 +496,6 @@ export const HazardBanners: React.FC<HazardBannersProps> = ({
                   backgroundColor: '#ffffff',
                   border: '1px solid #fca5a5',
                   color: '#dc2626'
-                }}
-              >
-                View Pole {poleId}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Normal Sensor Hazard Alerts: Smoke / Gas Leakage (> 300 ppm) */}
-      {mq2HazardPoles.length > 0 && (
-        <div style={{
-          backgroundColor: '#fff7ed',
-          border: '1px solid #fed7aa',
-          borderLeft: '5px solid #c2410c',
-          borderRadius: '8px',
-          padding: '14px 18px',
-          marginBottom: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Flame style={{ width: '22px', height: '22px', color: '#c2410c', flexShrink: 0 }} />
-            <div>
-              <strong style={{ fontSize: '14px', color: '#9a3412' }}>
-                Combustible Gas Warning: Smoke / Gas Leakage on {mq2HazardPoles.map((id) => `Pole ${id}`).join(', ')}
-              </strong>
-              <p style={{ fontSize: '12px', color: '#c2410c', marginTop: '2px' }}>
-                Combustible hydrocarbon gas / smoke level exceeds {gasThresholds.mq2} ppm threshold. Potential fire/combustion hazard.
-              </p>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {mq2HazardPoles.map((poleId) => (
-              <button
-                key={poleId}
-                onClick={() => setActivePoleTab(poleId)}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #fdba74',
-                  color: '#c2410c'
                 }}
               >
                 View Pole {poleId}

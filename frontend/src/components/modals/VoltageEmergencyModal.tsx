@@ -1,7 +1,7 @@
 import React from 'react';
 import { Zap, X, Volume2, VolumeX, ShieldAlert, MapPin, Compass, Droplets } from 'lucide-react';
-import type { TelemetryPacket } from '../types/telemetry';
-import { DEFAULT_POLES } from '../constants/polesCatalog';
+import type { TelemetryPacket } from '../../types/telemetry';
+import { DEFAULT_POLES } from '../../constants/polesCatalog';
 
 interface VoltageEmergencyModalProps {
   isVoltageEmergency: boolean;
@@ -185,7 +185,7 @@ export const VoltageEmergencyModal: React.FC<VoltageEmergencyModalProps> = ({
                     refId: `REF-PL0${id}`,
                     address: `Zone ${id} - Monitored Sector Grid`
                   };
-                  const poleCatalogItem = DEFAULT_POLES.find((p) => p.id === id);
+                  const poleCatalogItem = DEFAULT_POLES.find((p: { id: number }) => p.id === id);
 
                   return (
                     <div

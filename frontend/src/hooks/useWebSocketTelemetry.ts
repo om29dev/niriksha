@@ -10,7 +10,7 @@ export function useWebSocketTelemetry(onWsMessage?: (data: any) => void) {
 
   const [ports, setPorts] = useState<PortInfo[]>([]);
   const [selectedPort, setSelectedPort] = useState<string>('');
-  const [useSimulation, setUseSimulation] = useState<boolean>(true);
+  const [useSimulation, setUseSimulation] = useState<boolean>(false);
   const [wsConnected, setWsConnected] = useState<boolean>(false);
   const [packetRate, setPacketRate] = useState<number>(0);
 

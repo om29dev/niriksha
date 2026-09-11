@@ -1,6 +1,7 @@
 param(
     [ValidateSet("start", "stop", "restart", "status", "logs", "debug", "help")]
-    [string]$Action = "start"
+    [string]$Action = "start",
+    [string]$Mode = ""
 )
 
 $RootDir = $PSScriptRoot
@@ -47,17 +48,25 @@ function Show-Help {
     Write-Host "  logs     " -NoNewline -ForegroundColor Green; Write-Host "Streams live backend log output (Ctrl+C to exit)"
     Write-Host "  help     " -NoNewline -ForegroundColor Green; Write-Host "Displays this command guide`n"
     Write-Host "Examples:" -ForegroundColor Gray
-    Write-Host "  .\manage.ps1 start"
-    Write-Host "  .\manage.ps1 debug"
+    Write-Host "  .\manage.ps1 start         (Hardware serial gateway mode)"
+    Write-Host "  .\manage.ps1 start mock    (Synthetic multi-pole mock stream)"
+    Write-Host "  .\manage.ps1 debug mock    (Interactive debug with mock stream)"
     Write-Host "  .\manage.ps1 stop`n"
 }
 
 function Start-Debug-Unified {
+    param([string]$RunMode = "")
     # Terminate any existing instances first
     Stop-Services -Quiet
 
+    $isMock = ($RunMode.ToLower() -eq "mock")
     Write-Host "`n=========================================================" -ForegroundColor Cyan
     Write-Host "  Starting Unified Debug Stream (Current Window)" -ForegroundColor Cyan
+    if ($isMock) {
+        Write-Host "  [MODE] Mock Simulation Active" -ForegroundColor Magenta
+    } else {
+        Write-Host "  [MODE] Physical Serial Gateway Active" -ForegroundColor Green
+    }
     Write-Host "  Ollama AI Engine : http://127.0.0.1:11434" -ForegroundColor White
     Write-Host "  FastAPI Backend  : http://127.0.0.1:8000" -ForegroundColor White
     Write-Host "  React Dashboard  : http://localhost:5173" -ForegroundColor White
@@ -70,9 +79,10 @@ function Start-Debug-Unified {
         Start-Process -FilePath $ollamaExe -ArgumentList "serve" -WindowStyle Hidden
     }
 
+    $envCmd = if ($isMock) { "set MOCK_SIMULATION=true && " } else { "set MOCK_SIMULATION=false && " }
     $backendPsi = New-Object System.Diagnostics.ProcessStartInfo
     $backendPsi.FileName = "cmd.exe"
-    $backendPsi.Arguments = "/c cd /d `"$BackendDir`" && python -m uvicorn main:app --host 127.0.0.1 --port 8000 --log-level debug"
+    $backendPsi.Arguments = "/c cd /d `"$BackendDir`" && $envCmd python -m uvicorn main:app --host 127.0.0.1 --port 8000 --log-level debug"
     $backendPsi.RedirectStandardOutput = $true
     $backendPsi.RedirectStandardError = $true
     $backendPsi.UseShellExecute = $false
@@ -142,15 +152,24 @@ function Start-Debug-Unified {
 }
 
 function Start-Services {
-    param([bool]$IsDebug = $false)
+    param(
+        [bool]$IsDebug = $false,
+        [string]$RunMode = ""
+    )
 
     if ($IsDebug) {
-        Start-Debug-Unified
+        Start-Debug-Unified -RunMode $RunMode
         return
     }
 
+    $isMock = ($RunMode.ToLower() -eq "mock")
     Write-Host "`n=========================================================" -ForegroundColor Cyan
     Write-Host "  Starting Offline IoT Dashboard System (Laboratory Mode)" -ForegroundColor Cyan
+    if ($isMock) {
+        Write-Host "  [MODE] Mock Simulation Active" -ForegroundColor Magenta
+    } else {
+        Write-Host "  [MODE] Physical Serial Gateway Active" -ForegroundColor Green
+    }
     Write-Host "=========================================================" -ForegroundColor Cyan
 
     # Terminate any existing instances first
@@ -171,14 +190,16 @@ function Start-Services {
         Write-Host "[1/3] Ollama AI server already running on http://127.0.0.1:11434." -ForegroundColor Green
     }
 
+    $envCmd = if ($isMock) { "set MOCK_SIMULATION=true && " } else { "set MOCK_SIMULATION=false && " }
     Write-Host "[2/3] Launching FastAPI Backend on http://127.0.0.1:8000 (logging to logs\backend.log)..." -ForegroundColor Yellow
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/c cd /d `"$BackendDir`" && python -m uvicorn main:app --host 127.0.0.1 --port 8000 > `"$BackendLog`" 2>&1" -WindowStyle Hidden
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/c cd /d `"$BackendDir`" && $envCmd python -m uvicorn main:app --host 127.0.0.1 --port 8000 > `"$BackendLog`" 2>&1" -WindowStyle Hidden
 
     Write-Host "[3/3] Launching React+Vite Frontend on http://localhost:5173 (logging to logs\frontend.log)..." -ForegroundColor Yellow
     Start-Process -FilePath "cmd.exe" -ArgumentList "/c cd /d `"$FrontendDir`" && npm run dev > `"$FrontendLog`" 2>&1" -WindowStyle Hidden
 
     Write-Host "`n---------------------------------------------------------" -ForegroundColor Green
     Write-Host "[SUCCESS] Services started successfully!" -ForegroundColor Green
+    Write-Host " - Telemetry Mode   : $(if($isMock){'Synthetic Mock Stream'}else{'Hardware Serial Gateway'})" -ForegroundColor Cyan
     Write-Host " - Ollama AI Engine : http://127.0.0.1:11434" -ForegroundColor White
     Write-Host " - FastAPI Backend  : http://127.0.0.1:8000" -ForegroundColor White
     Write-Host " - WebSocket Stream : ws://127.0.0.1:8000/ws" -ForegroundColor White
@@ -187,10 +208,11 @@ function Start-Services {
     Write-Host " - Backend Logs     : .\logs\backend.log" -ForegroundColor Gray
     Write-Host " - Frontend Logs    : .\logs\frontend.log" -ForegroundColor Gray
     Write-Host "---------------------------------------------------------" -ForegroundColor Green
-    Write-Host "To STOP all services:      .\manage.ps1 stop" -ForegroundColor Cyan
-    Write-Host "To VIEW live backend logs: .\manage.ps1 logs" -ForegroundColor Cyan
-    Write-Host "To START in debug mode:    .\manage.ps1 debug" -ForegroundColor Cyan
-    Write-Host "To SEE all commands:       .\manage.ps1 help`n" -ForegroundColor Cyan
+    Write-Host "To STOP all services:        .\manage.ps1 stop" -ForegroundColor Cyan
+    Write-Host "To VIEW live backend logs:   .\manage.ps1 logs" -ForegroundColor Cyan
+    Write-Host "To START with mock stream:   .\manage.ps1 start mock" -ForegroundColor Cyan
+    Write-Host "To START in debug mode:      .\manage.ps1 debug [mock]" -ForegroundColor Cyan
+    Write-Host "To SEE all commands:         .\manage.ps1 help`n" -ForegroundColor Cyan
 }
 
 function Stop-Services {
@@ -252,13 +274,13 @@ function Show-Logs {
 }
 
 switch ($Action.ToLower()) {
-    "start"   { Start-Services -IsDebug $false }
-    "debug"   { Start-Services -IsDebug $true }
+    "start"   { Start-Services -IsDebug $false -RunMode $Mode }
+    "debug"   { Start-Services -IsDebug $true -RunMode $Mode }
     "stop"    { Stop-Services }
     "restart" {
         Stop-Services
         Start-Sleep -Seconds 2
-        Start-Services -IsDebug $false
+        Start-Services -IsDebug $false -RunMode $Mode
     }
     "status"  {
         $oRunning = Get-NetTCPConnection -LocalPort 11434 -ErrorAction SilentlyContinue

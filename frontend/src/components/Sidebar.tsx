@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Activity,
-  Cpu,
   Usb,
   ShieldAlert,
   ArrowLeftRight,
@@ -42,7 +41,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   downPoles,
   offlinePoles,
   wsConnected,
-  useSimulation,
   selectedPort,
   packetRate,
   unresolvedAlertsCount = 0
@@ -365,11 +363,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', color: '#64748b' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                {useSimulation ? <Cpu style={{ width: '13px', height: '13px' }} /> : <Usb style={{ width: '13px', height: '13px' }} />}
+                <Usb style={{ width: '13px', height: '13px' }} />
                 Ingestion Mode
               </span>
               <span style={{ fontWeight: '600', color: '#334155' }}>
-                {useSimulation ? 'Simulation' : (selectedPort || 'Hardware')}
+                {selectedPort || 'Gateway Serial'}
               </span>
             </div>
 
@@ -382,7 +380,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
             {/* Status indicator button / badge */}
             <div
-              title={`WebSocket: ${wsConnected ? 'Connected' : 'Offline'} | ${useSimulation ? 'Simulation' : (selectedPort || 'Hardware')} (${packetRate} Hz)`}
+              title={`WebSocket: ${wsConnected ? 'Connected' : 'Offline'} | ${selectedPort || 'Gateway Serial'} (${packetRate} Hz)`}
               style={{
                 width: '36px',
                 height: '36px',

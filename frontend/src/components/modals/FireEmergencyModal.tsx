@@ -1,7 +1,7 @@
 import React from 'react';
 import { Flame, X, Volume2, VolumeX, MapPin, Thermometer, Wind } from 'lucide-react';
-import type { TelemetryPacket } from '../types/telemetry';
-import { DEFAULT_POLES } from '../constants/polesCatalog';
+import type { TelemetryPacket } from '../../types/telemetry';
+import { DEFAULT_POLES } from '../../constants/polesCatalog';
 
 interface FireEmergencyModalProps {
   isFireEmergency: boolean;
@@ -176,14 +176,14 @@ export const FireEmergencyModal: React.FC<FireEmergencyModalProps> = ({
                 {displayPoles.map(({ id, pkt }) => {
                   const temp = pkt?.temperature ?? 0.0;
                   const isSevereFire = temp >= 60.0;
-                  const mq2 = pkt?.mq2;
+                  const mq135 = pkt?.mq135;
                   const mq7 = pkt?.mq7;
                   const humidity = pkt?.humidity;
                   const meta = poleMetadata[id] || {
                     refId: `REF-PL0${id}`,
                     address: `Zone ${id} - Monitored Sector Grid`
                   };
-                  const poleCatalogItem = DEFAULT_POLES.find((p) => p.id === id);
+                  const poleCatalogItem = DEFAULT_POLES.find((p: { id: number }) => p.id === id);
 
                   return (
                     <div
@@ -303,7 +303,7 @@ export const FireEmergencyModal: React.FC<FireEmergencyModalProps> = ({
                           </div>
                         </div>
 
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                           <div style={{
                             backgroundColor: '#f8fafc',
                             border: '1.5px solid #e2e8f0',
@@ -314,18 +314,18 @@ export const FireEmergencyModal: React.FC<FireEmergencyModalProps> = ({
                             gap: '3px'
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: '800', color: '#64748b' }}>
-                              <Wind style={{ width: '14px', height: '14px', color: '#ea580c' }} />
-                              SMOKE / GAS (MQ-2)
+                              <Wind style={{ width: '14px', height: '14px', color: '#9333ea' }} />
+                              AIR QUALITY (MQ-135)
                             </div>
                             <div style={{
                               fontSize: '15px',
                               fontWeight: '900',
-                              color: mq2 !== null && mq2 !== undefined && mq2 > 300 ? '#dc2626' : '#0f172a'
+                              color: mq135 !== null && mq135 !== undefined && mq135 > 150 ? '#dc2626' : '#0f172a'
                             }}>
-                              {mq2 !== null && mq2 !== undefined ? `${mq2.toFixed(1)} ppm` : 'Not Connected'}
+                              {mq135 !== null && mq135 !== undefined ? `${mq135.toFixed(1)} ppm` : 'Not Connected'}
                             </div>
                             <span style={{ fontSize: '10px', color: '#64748b' }}>
-                              {mq2 !== null && mq2 !== undefined && mq2 > 300 ? '⚠️ Heavy Smoke' : 'Nominal'}
+                              {mq135 !== null && mq135 !== undefined && mq135 > 150 ? '⚠️ High Pollution' : 'Nominal'}
                             </span>
                           </div>
 

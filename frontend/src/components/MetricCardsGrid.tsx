@@ -1,5 +1,5 @@
 import React from 'react';
-import { Zap, AlertTriangle, ShieldCheck, Waves, Gauge, Droplets, Wind, Flame } from 'lucide-react';
+import { Zap, AlertTriangle, ShieldCheck, Waves, Gauge, Droplets, Wind } from 'lucide-react';
 import type { TelemetryPacket } from '../types/telemetry';
 import { MetricCard } from './MetricCard';
 import { DEFAULT_GAS_THRESHOLDS, type GasThresholdConfig } from '../constants/gasThresholds';
@@ -14,12 +14,11 @@ export const MetricCardsGrid: React.FC<MetricCardsGridProps> = ({ selectedLatest
   const isVoltageHazard = !!(selectedLatest?.voltage !== null && selectedLatest?.voltage !== undefined && selectedLatest.voltage > 5.0);
   const isUprightDown = selectedLatest?.is_upright === false;
   const isFloodHazard = !!(selectedLatest?.water_depth && selectedLatest.water_depth > 100.0);
-  const isTempHazard = !!(selectedLatest?.temperature && selectedLatest.temperature > 45.0);
-  const isHumidityHazard = !!(selectedLatest?.humidity && selectedLatest.humidity > 85.0);
+  const isTempHazard = !!(selectedLatest?.temperature && selectedLatest.temperature > gasThresholds.temp);
+  const isHumidityHazard = !!(selectedLatest?.humidity && selectedLatest.humidity > gasThresholds.humidity);
   const isMq7Hazard = !!(selectedLatest?.mq7 && selectedLatest.mq7 > gasThresholds.mq7);
   const isMq135Hazard = !!(selectedLatest?.mq135 && selectedLatest.mq135 > gasThresholds.mq135);
   const isMq136Hazard = !!(selectedLatest?.mq136 && selectedLatest.mq136 > gasThresholds.mq136);
-  const isMq2Hazard = !!(selectedLatest?.mq2 && selectedLatest.mq2 > gasThresholds.mq2);
 
 
   return (
@@ -165,20 +164,6 @@ export const MetricCardsGrid: React.FC<MetricCardsGridProps> = ({ selectedLatest
         hazardText="⚠️ Toxic Sewage Gas"
         hazardBorderColor="#fca5a5"
         hazardBgColor="#fef2f2"
-      />
-
-      {/* 10. Smoke / Gas Leakage */}
-      <MetricCard
-        title="SMOKE / GAS LEAKAGE"
-        value={selectedLatest?.mq2}
-        unit="ppm"
-        icon={<Flame style={{ width: '20px', height: '20px', color: isMq2Hazard ? '#c2410c' : '#475569' }} />}
-        subtitle="Smoke & Combustible Gas"
-        accentColor="#0f172a"
-        isHazard={isMq2Hazard}
-        hazardText="⚠️ Smoke / Gas Detected"
-        hazardBorderColor="#fed7aa"
-        hazardBgColor="#fff7ed"
       />
     </section>
   );

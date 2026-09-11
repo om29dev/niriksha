@@ -58,16 +58,16 @@ export function useHazardDetection(
   });
   const isFireEmergency = fireHazardPoles.length > 0;
 
-  // Standard Thermal Warning (> 45°C)
+  // Standard Thermal Warning (> temp threshold, default 45°C)
   const tempHazardPoles = ([1, 2, 3] as const).filter((id) => {
     const pkt = id === 1 ? latestPole1 : id === 2 ? latestPole2 : latestPole3;
-    return pkt && pkt.temperature !== null && pkt.temperature !== undefined && pkt.temperature > 45.0;
+    return pkt && pkt.temperature !== null && pkt.temperature !== undefined && pkt.temperature > gasThresholds.temp;
   });
 
-  // 4. High Humidity Hazard: Humidity > 85%
+  // 4. High Humidity Hazard: Humidity > humidity threshold (default 85%)
   const humidityHazardPoles = ([1, 2, 3] as const).filter((id) => {
     const pkt = id === 1 ? latestPole1 : id === 2 ? latestPole2 : latestPole3;
-    return pkt && pkt.humidity !== null && pkt.humidity !== undefined && pkt.humidity > 85.0;
+    return pkt && pkt.humidity !== null && pkt.humidity !== undefined && pkt.humidity > gasThresholds.humidity;
   });
 
   // 5. Toxic Gas Hazards with distinct thresholds for each gas
@@ -89,12 +89,6 @@ export function useHazardDetection(
     return pkt && pkt.mq136 !== null && pkt.mq136 !== undefined && pkt.mq136 > gasThresholds.mq136;
   });
 
-  // MQ-2: Smoke & Combustible Gas (> 300 ppm default)
-  const mq2HazardPoles = ([1, 2, 3] as const).filter((id) => {
-    const pkt = id === 1 ? latestPole1 : id === 2 ? latestPole2 : latestPole3;
-    return pkt && pkt.mq2 !== null && pkt.mq2 !== undefined && pkt.mq2 > gasThresholds.mq2;
-  });
-
   return {
     poleStateMap,
     downPoles,
@@ -108,7 +102,6 @@ export function useHazardDetection(
     humidityHazardPoles,
     mq7HazardPoles,
     mq135HazardPoles,
-    mq136HazardPoles,
-    mq2HazardPoles
+    mq136HazardPoles
   };
 }

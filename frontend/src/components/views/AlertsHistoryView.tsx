@@ -29,7 +29,6 @@ interface AlertsHistoryViewProps {
   mq7HazardPoles: PoleId[];
   mq135HazardPoles: PoleId[];
   mq136HazardPoles: PoleId[];
-  mq2HazardPoles: PoleId[];
   isVoltageEmergency: boolean;
   audioMuted: boolean;
   onToggleMute: () => void;
@@ -53,7 +52,6 @@ export const AlertsHistoryView: React.FC<AlertsHistoryViewProps> = ({
   mq7HazardPoles,
   mq135HazardPoles,
   mq136HazardPoles,
-  mq2HazardPoles,
   isVoltageEmergency,
   audioMuted,
   onToggleMute,
@@ -107,7 +105,7 @@ export const AlertsHistoryView: React.FC<AlertsHistoryViewProps> = ({
     }] : []),
     ...(tempHazardPoles.length > 0 ? [{
       id: 'temp',
-      title: 'High Ambient Temperature Threshold Exceeded (>45°C)',
+      title: `High Ambient Temperature Threshold Exceeded (>${gasThresholds.temp}°C)`,
       severity: 'warning' as const,
       description: 'Thermal warning on DHT11 telemetry.',
       poles: tempHazardPoles,
@@ -115,19 +113,11 @@ export const AlertsHistoryView: React.FC<AlertsHistoryViewProps> = ({
     }] : []),
     ...(humidityHazardPoles.length > 0 ? [{
       id: 'humidity',
-      title: 'High Relative Humidity Level (>85%)',
+      title: `High Relative Humidity Level (>${gasThresholds.humidity}%)`,
       severity: 'info' as const,
       description: 'Condensation risk detected on weather sensor enclosure.',
       poles: humidityHazardPoles,
       icon: CloudRain
-    }] : []),
-    ...(mq2HazardPoles.length > 0 ? [{
-      id: 'mq2',
-      title: `Flammable / Combustible Gas Leak (MQ-2 > ${gasThresholds.mq2} PPM)`,
-      severity: 'warning' as const,
-      description: 'Elevated LPG, Propane, or Methane gas reading detected.',
-      poles: mq2HazardPoles,
-      icon: Flame
     }] : []),
     ...(mq7HazardPoles.length > 0 ? [{
       id: 'mq7',
@@ -167,7 +157,6 @@ export const AlertsHistoryView: React.FC<AlertsHistoryViewProps> = ({
     floodHazardPoles,
     tempHazardPoles,
     humidityHazardPoles,
-    mq2HazardPoles,
     mq7HazardPoles,
     mq135HazardPoles,
     mq136HazardPoles,

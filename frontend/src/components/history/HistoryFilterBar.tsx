@@ -1,88 +1,95 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Search, Filter, X } from 'lucide-react';
+import React, { useRef, useEffect } from 'react';
+import { Search, Filter, X, RefreshCw } from 'lucide-react';
 import type { PoleId } from '../../types/telemetry';
 import { PoleSelectDropdown } from '../PoleSelectDropdown';
 import { DEFAULT_POLES } from '../../constants/polesCatalog';
 
-export interface AlertsFilterBarProps {
+export interface HistoryFilterBarProps {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
-  selectedPoleFilter: PoleId | 'all';
-  setSelectedPoleFilter: (p: PoleId | 'all') => void;
-  selectedSeverityFilter: 'all' | 'critical' | 'warning' | 'info';
-  setSelectedSeverityFilter: (s: 'all' | 'critical' | 'warning' | 'info') => void;
-  selectedStatusFilter: 'all' | 'UNRESOLVED' | 'RESOLVED';
-  setSelectedStatusFilter: (st: 'all' | 'UNRESOLVED' | 'RESOLVED') => void;
-  activeTab: 'unresolved' | 'all';
+  poleFilter: PoleId | 'all';
+  setPoleFilter: (p: PoleId | 'all') => void;
+  uprightFilter: 'all' | 'upright' | 'tilted';
+  setUprightFilter: (u: 'all' | 'upright' | 'tilted') => void;
   pageSize: number;
   setPageSize: (size: number) => void;
+  isFilterDropdownOpen: boolean;
+  setIsFilterDropdownOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  onRefresh: () => void;
+  isLoading: boolean;
+  totalCount: number;
 }
 
-export const AlertsFilterBar: React.FC<AlertsFilterBarProps> = ({
+export const HistoryFilterBar: React.FC<HistoryFilterBarProps> = ({
   searchQuery,
   setSearchQuery,
-  selectedPoleFilter,
-  setSelectedPoleFilter,
-  selectedSeverityFilter,
-  setSelectedSeverityFilter,
-  selectedStatusFilter,
-  setSelectedStatusFilter,
-  activeTab,
+  poleFilter,
+  setPoleFilter,
+  uprightFilter,
+  setUprightFilter,
   pageSize,
-  setPageSize
+  setPageSize,
+  isFilterDropdownOpen,
+  setIsFilterDropdownOpen,
+  onRefresh,
+  isLoading,
+  totalCount
 }) => {
-  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
-  const filterRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-        setIsFilterOpen(false);
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setIsFilterDropdownOpen(false);
       }
     };
-    if (isFilterOpen) {
+    if (isFilterDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isFilterOpen]);
+  }, [isFilterDropdownOpen, setIsFilterDropdownOpen]);
 
-  const activeFiltersCount =
-    (selectedPoleFilter !== 'all' ? 1 : 0) +
-    (selectedSeverityFilter !== 'all' ? 1 : 0) +
-    (activeTab === 'all' && selectedStatusFilter !== 'all' ? 1 : 0);
+  // Count active non-default filters inside the modal/popover
+  const activeFiltersCount = (poleFilter !== 'all' ? 1 : 0) + (uprightFilter !== 'all' ? 1 : 0);
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      flexWrap: 'wrap',
-      gap: '12px',
-      backgroundColor: '#ffffff',
-      padding: '12px 18px',
-      borderRadius: '8px',
-      border: '1px solid #e2e8f0',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
-    }}>
-      {/* Left: Search Box and Single Filter Button */}
+    <div
+      style={{
+        backgroundColor: '#ffffff',
+        border: '1px solid #e2e8f0',
+        borderRadius: '8px',
+        padding: '12px 18px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '12px',
+        boxShadow: '0 1px 3px 0 rgba(0,0,0,0.03)'
+      }}
+    >
+      {/* Left Area: Search Input & Single Filter Button */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1 1 300px', maxWidth: '640px' }}>
         {/* Search Box */}
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          backgroundColor: '#f8fafc',
-          border: '1px solid #cbd5e1',
-          borderRadius: '6px',
-          padding: '7px 12px'
-        }}>
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: '#f8fafc',
+            border: '1px solid #cbd5e1',
+            borderRadius: '6px',
+            padding: '7px 12px',
+            transition: 'border-color 0.15s ease'
+          }}
+        >
           <Search style={{ width: '15px', height: '15px', color: '#94a3b8', flexShrink: 0 }} />
           <input
             type="text"
-            placeholder="Search alerts by title, description, or sensor..."
+            placeholder="Search seq, pole, voltage, temp, water..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
@@ -97,17 +104,26 @@ export const AlertsFilterBar: React.FC<AlertsFilterBarProps> = ({
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              style={{ border: 'none', background: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
+              title="Clear search"
+              style={{
+                border: 'none',
+                background: 'none',
+                color: '#94a3b8',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '2px'
+              }}
             >
               <X style={{ width: '14px', height: '14px' }} />
             </button>
           )}
         </div>
 
-        {/* Single Filter Button & Popover */}
-        <div style={{ position: 'relative' }} ref={filterRef}>
+        {/* Single Unified Filter Button & Popover */}
+        <div style={{ position: 'relative' }} ref={popoverRef}>
           <button
-            onClick={() => setIsFilterOpen(prev => !prev)}
+            onClick={() => setIsFilterDropdownOpen((prev: boolean) => !prev)}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -143,7 +159,8 @@ export const AlertsFilterBar: React.FC<AlertsFilterBarProps> = ({
             )}
           </button>
 
-          {isFilterOpen && (
+          {/* Filter Popover Dropdown Panel */}
+          {isFilterDropdownOpen && (
             <div
               style={{
                 position: 'absolute',
@@ -162,13 +179,12 @@ export const AlertsFilterBar: React.FC<AlertsFilterBarProps> = ({
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a' }}>Filter Alerts</span>
-                {activeFiltersCount > 0 && (
+                <span style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a' }}>Filter Telemetry</span>
+                {(poleFilter !== 'all' || uprightFilter !== 'all') && (
                   <button
                     onClick={() => {
-                      setSelectedPoleFilter('all');
-                      setSelectedSeverityFilter('all');
-                      setSelectedStatusFilter('all');
+                      setPoleFilter('all');
+                      setUprightFilter('all');
                     }}
                     style={{
                       border: 'none',
@@ -185,82 +201,53 @@ export const AlertsFilterBar: React.FC<AlertsFilterBarProps> = ({
                 )}
               </div>
 
-              {/* Scalable Pole Filter */}
+              {/* Pole Selection Filter */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569' }}>
                   Field Pole Node:
                 </label>
                 <PoleSelectDropdown
                   poles={DEFAULT_POLES}
-                  selectedPoleId={selectedPoleFilter}
-                  onSelectPole={(id) => setSelectedPoleFilter(id)}
+                  selectedPoleId={poleFilter}
+                  onSelectPole={(id) => setPoleFilter(id)}
                   allowAllOption={true}
-                  allOptionLabel="All Nodes"
+                  allOptionLabel="All Field Poles"
                   width="100%"
                   size="sm"
                 />
               </div>
 
-              {/* Severity Filter */}
+              {/* Orientation Filter */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569' }}>
-                  Severity Level:
+                  Orientation Status:
                 </label>
                 <select
-                  value={selectedSeverityFilter}
-                  onChange={(e) => setSelectedSeverityFilter(e.target.value as any)}
+                  value={uprightFilter}
+                  onChange={(e) => setUprightFilter(e.target.value as any)}
                   style={{
+                    padding: '7px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
                     fontSize: '12px',
                     fontWeight: '500',
                     color: '#334155',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '6px',
-                    padding: '7px 10px',
                     backgroundColor: '#ffffff',
                     outline: 'none',
                     cursor: 'pointer',
                     width: '100%'
                   }}
                 >
-                  <option value="all">All Severities</option>
-                  <option value="critical">Critical Only</option>
-                  <option value="warning">Warning Only</option>
-                  <option value="info">Info Only</option>
+                  <option value="all">Any Orientation</option>
+                  <option value="upright">Upright Only</option>
+                  <option value="tilted">Tilted / Fallen Hazards Only</option>
                 </select>
               </div>
 
-              {/* Status Filter (visible on "All" tab) */}
-              {activeTab === 'all' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569' }}>
-                    Resolution Status:
-                  </label>
-                  <select
-                    value={selectedStatusFilter}
-                    onChange={(e) => setSelectedStatusFilter(e.target.value as any)}
-                    style={{
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      color: '#334155',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '6px',
-                      padding: '7px 10px',
-                      backgroundColor: '#ffffff',
-                      outline: 'none',
-                      cursor: 'pointer',
-                      width: '100%'
-                    }}
-                  >
-                    <option value="all">All States</option>
-                    <option value="UNRESOLVED">Unresolved Only</option>
-                    <option value="RESOLVED">Resolved Only</option>
-                  </select>
-                </div>
-              )}
-
+              {/* Active Criteria Summary Footer */}
               <div style={{ paddingTop: '8px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
                 <button
-                  onClick={() => setIsFilterOpen(false)}
+                  onClick={() => setIsFilterDropdownOpen(false)}
                   style={{
                     backgroundColor: '#2563eb',
                     color: '#ffffff',
@@ -278,11 +265,37 @@ export const AlertsFilterBar: React.FC<AlertsFilterBarProps> = ({
             </div>
           )}
         </div>
+
+        {/* Refresh Button */}
+        <button
+          onClick={onRefresh}
+          disabled={isLoading}
+          title="Reload latest records from PostgreSQL"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '7px 12px',
+            borderRadius: '6px',
+            fontSize: '12px',
+            fontWeight: '600',
+            border: '1px solid #cbd5e1',
+            backgroundColor: '#ffffff',
+            color: '#334155',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
+            transition: 'all 0.15s ease'
+          }}
+        >
+          <RefreshCw style={{ width: '13px', height: '13px', animation: isLoading ? 'spin 1s linear infinite' : 'none' }} />
+          Refresh
+        </button>
       </div>
 
-      {/* Right: Page Size Selector */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Show:</span>
+      {/* Right Area: Number of entries per page selector */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>
+          Entries per page:
+        </span>
         <select
           value={pageSize}
           onChange={(e) => setPageSize(Number(e.target.value))}
@@ -303,8 +316,10 @@ export const AlertsFilterBar: React.FC<AlertsFilterBarProps> = ({
           <option value={50}>50 per page</option>
           <option value={100}>100 per page</option>
         </select>
+        <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '4px' }}>
+          ({totalCount.toLocaleString()} total)
+        </span>
       </div>
     </div>
   );
 };
-

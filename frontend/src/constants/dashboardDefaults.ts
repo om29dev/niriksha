@@ -9,8 +9,7 @@ export const AVAILABLE_METRICS: MetricDefinition[] = [
   { key: 'humidity', title: 'HUMIDITY', unit: '%', subtitle: 'Relative Humidity' },
   { key: 'mq7', title: 'CARBON MONOXIDE', unit: 'ppm', subtitle: 'Carbon Monoxide' },
   { key: 'mq135', title: 'AIR QUALITY', unit: 'ppm', subtitle: 'Air Pollution / NH3 / NOx' },
-  { key: 'mq136', title: 'SEWAGE GAS', unit: 'ppm', subtitle: 'Sewage Gas / Toxic Vapors' },
-  { key: 'mq2', title: 'SMOKE / GAS LEAKAGE', unit: 'ppm', subtitle: 'Smoke & Combustible Gas' }
+  { key: 'mq136', title: 'SEWAGE GAS', unit: 'ppm', subtitle: 'Sewage Gas / Toxic Vapors' }
 ];
 
 export const AVAILABLE_CHARTS: ChartDefinition[] = [
@@ -55,7 +54,6 @@ export const DEFAULT_DASHBOARD_CARDS: DashboardCardConfig[] = [
   { id: 'm-mq7', type: 'metric', metricKey: 'mq7', poleId: 1, colSpan: 1, rowSpan: 1 },
   { id: 'm-mq135', type: 'metric', metricKey: 'mq135', poleId: 1, colSpan: 1, rowSpan: 1 },
   { id: 'm-mq136', type: 'metric', metricKey: 'mq136', poleId: 1, colSpan: 1, rowSpan: 1 },
-  { id: 'm-mq2', type: 'metric', metricKey: 'mq2', poleId: 1, colSpan: 1, rowSpan: 1 },
 
   // Graph curve cards (2x2)
   { id: 'c-voltage', type: 'chart', chartKey: 'voltage', poleId: 1, colSpan: 2, rowSpan: 2 },

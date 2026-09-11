@@ -162,21 +162,6 @@ async def evaluate_and_record_alerts(packet: Dict[str, Any]):
             if new_alert:
                 await ws_manager.broadcast({"type": "NEW_ALERT", "alert": new_alert})
 
-        # 9. Gas: MQ-2 Combustible Gas (> 300 ppm)
-        mq2 = packet.get("mq2")
-        if mq2 is not None and mq2 > 300.0:
-            new_alert = await record_alert_if_new(
-                pole_id=pole_id,
-                alert_type="gas_mq2",
-                severity="warning",
-                title=f"Combustible Gas Leak ({mq2:.1f} ppm)",
-                description="Elevated LPG / Methane / smoke levels detected.",
-                trigger_value=float(mq2),
-                unit="ppm"
-            )
-            if new_alert:
-                await ws_manager.broadcast({"type": "NEW_ALERT", "alert": new_alert})
-
     except Exception as e:
         logger.error(f"Error evaluating alerts: {e}")
 
@@ -196,7 +181,10 @@ async def broadcast_packet(packet: Dict[str, Any]):
     await ws_manager.broadcast(packet)
 
 
-serial_mgr = SerialManager(broadcast_callback=broadcast_packet, use_simulation=True)
+mock_env = os.getenv("MOCK_SIMULATION", "false").strip().lower()
+initial_simulation = mock_env in ("true", "1", "yes")
+
+serial_mgr = SerialManager(broadcast_callback=broadcast_packet, use_simulation=initial_simulation)
 ingestion_task: asyncio.Task = None
 flush_task: asyncio.Task = None
 

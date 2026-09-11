@@ -3,11 +3,10 @@ import { Usb, RefreshCw } from 'lucide-react';
 import type { PortInfo } from '../../types/telemetry';
 
 export interface TelemetrySourceCardProps {
-  useSimulation: boolean;
   selectedPort: string;
   ports: PortInfo[];
-  activeInputMode: 'mock' | 'serial' | 'mqtt';
-  setActiveInputMode: (mode: 'mock' | 'serial' | 'mqtt') => void;
+  activeInputMode: 'serial' | 'mqtt';
+  setActiveInputMode: (mode: 'serial' | 'mqtt') => void;
   onConfigUpdate: (simMode: boolean, portName: string) => void;
   onScanPorts: () => void;
   baudRate: string;
@@ -28,7 +27,6 @@ export interface TelemetrySourceCardProps {
 }
 
 export const TelemetrySourceCard: React.FC<TelemetrySourceCardProps> = ({
-  useSimulation,
   selectedPort,
   ports,
   activeInputMode,
@@ -71,7 +69,7 @@ export const TelemetrySourceCard: React.FC<TelemetrySourceCardProps> = ({
             Telemetry Input Source
           </h3>
           <span style={{ fontSize: '11px', color: '#64748b' }}>
-            Hardware UART serial or mock synthetic telemetry
+            Hardware UART serial gateway or MQTT broker stream
           </span>
         </div>
       </div>
@@ -81,29 +79,7 @@ export const TelemetrySourceCard: React.FC<TelemetrySourceCardProps> = ({
           <label style={{ fontSize: '12px', fontWeight: '600', color: '#334155', display: 'block', marginBottom: '6px' }}>
             Operational Mode
           </label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr', gap: '6px' }}>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveInputMode('mock');
-                onConfigUpdate(true, '');
-              }}
-              style={{
-                padding: '8px 10px',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                border: '1px solid',
-                backgroundColor: activeInputMode === 'mock' ? '#2563eb' : '#ffffff',
-                color: activeInputMode === 'mock' ? '#ffffff' : '#475569',
-                borderColor: activeInputMode === 'mock' ? '#2563eb' : '#cbd5e1',
-                textAlign: 'center',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              Mock Stream
-            </button>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <button
               type="button"
               onClick={() => {
@@ -316,7 +292,6 @@ export const TelemetrySourceCard: React.FC<TelemetrySourceCardProps> = ({
               </div>
               <select
                 value={selectedPort}
-                disabled={useSimulation}
                 onChange={(e) => onConfigUpdate(false, e.target.value)}
                 style={{
                   width: '100%',
@@ -324,9 +299,9 @@ export const TelemetrySourceCard: React.FC<TelemetrySourceCardProps> = ({
                   borderRadius: '6px',
                   fontSize: '13px',
                   border: '1px solid #cbd5e1',
-                  backgroundColor: useSimulation ? '#f8fafc' : '#ffffff',
-                  color: useSimulation ? '#94a3b8' : '#0f172a',
-                  cursor: useSimulation ? 'not-allowed' : 'pointer'
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  cursor: 'pointer'
                 }}
               >
                 {ports.length === 0 ? (

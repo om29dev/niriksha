@@ -50,8 +50,6 @@ def build_offline_ai_response(
             gas_alerts.append(f"Pole {p}: Poor Air Quality ({data.get('mq135')} ppm)")
         if (data.get("mq136") or 0) > 15:
             gas_alerts.append(f"Pole {p}: H2S Sewer Gas Breach ({data.get('mq136')} ppm)")
-        if (data.get("mq2") or 0) > 300:
-            gas_alerts.append(f"Pole {p}: Combustible Gas / Smoke ({data.get('mq2')} ppm)")
 
     # 1. Health / Overall Status
     if any(k in q for k in ["health", "status", "overview", "diagnos", "system state", "condition", "how is the system"]):
@@ -130,12 +128,10 @@ def build_offline_ai_response(
         mq7 = p3.get("mq7")
         mq135 = p3.get("mq135")
         mq136 = p3.get("mq136")
-        mq2 = p3.get("mq2")
 
         lines.append(f"- **MQ-7 (Carbon Monoxide):** {f'{mq7:.1f} ppm' if mq7 is not None else 'N/A'} (Threshold: >50 ppm)")
         lines.append(f"- **MQ-135 (Air Quality / NH3):** {f'{mq135:.1f} ppm' if mq135 is not None else 'N/A'} (Threshold: >150 ppm)")
         lines.append(f"- **MQ-136 (Hydrogen Sulfide Sewer Gas):** {f'{mq136:.1f} ppm' if mq136 is not None else 'N/A'} (Threshold: >15 ppm)")
-        lines.append(f"- **MQ-2 (Combustible Gas & Smoke):** {f'{mq2:.1f} ppm' if mq2 is not None else 'N/A'} (Threshold: >300 ppm)")
 
         if gas_alerts:
             lines.append("\n⚠️ **Immediate Attention Needed:**")
@@ -377,7 +373,6 @@ def query_ollama(
             parts.append(f"MQ7 CO={d.get('mq7')}ppm")
             parts.append(f"MQ135 Air={d.get('mq135')}ppm")
             parts.append(f"MQ136 H2S={d.get('mq136')}ppm")
-            parts.append(f"MQ2 Gas={d.get('mq2')}ppm")
 
         telemetry_lines.append(f"- Pole {pole_id}: " + ", ".join(parts))
 

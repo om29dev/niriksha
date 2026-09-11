@@ -11,8 +11,7 @@ export type MetricKey =
   | 'humidity'
   | 'mq7'
   | 'mq135'
-  | 'mq136'
-  | 'mq2';
+  | 'mq136';
 
 export type ChartKey =
   | 'voltage'

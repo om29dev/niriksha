@@ -147,3 +147,40 @@ body {
   animation: mapRedBlink 1.2s infinite ease-out;
   pointer-events: none;
 }
+
+/* Laboratory PDF & Print Styling */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Hide navigation, headers, and buttons during PDF print */
+  header, nav, aside, .no-print, [role="navigation"] {
+    display: none !important;
+  }
+
+  .dashboard-container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #printable-report-sheet {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Prevent awkward page breaks in charts and tables */
+  .print-page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .print-avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}

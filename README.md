@@ -170,20 +170,6 @@ SIH/
 
 ---
 
-## 🕹️ CLI Management Commands (`manage.ps1`)
-
-| Command | Action |
-| :--- | :--- |
-| `.\manage.ps1 start` | Starts backend (port 8000) and frontend (port 5173) in background jobs |
-| `.\manage.ps1 debug` | Runs unified debug stream in active console with `[BACKEND]` and `[FRONTEND]` tags |
-| `.\manage.ps1 stop` | Gracefully terminates both background processes |
-| `.\manage.ps1 restart` | Restarts backend and frontend services |
-| `.\manage.ps1 status` | Checks process status and port listeners |
-| `.\manage.ps1 logs` | Tails live backend log file (`Get-Content logs/backend.log -Wait`) |
-| `.\manage.ps1 help` | Displays available management commands |
-
----
-
 ## 📡 Sensor Specifications & Unified Data Model
 
 | Metric | Field | Unit | Physical Provider | Primary Function |

@@ -149,7 +149,7 @@ class MockSimulator:
         else:
             mq135 = round(55.0 + random.uniform(-5.0, 5.0), 1)
 
-        # MQ-136 H2S
+        # Sewage Gas (MQ-136)
         if "mq136" in self.gas_alert_events:
             if current_time < self.gas_alert_events["mq136"]:
                 mq136 = round(22.0 + random.uniform(-2.0, 8.0), 1)
@@ -162,20 +162,7 @@ class MockSimulator:
         else:
             mq136 = round(4.0 + random.uniform(-0.5, 0.8), 1)
 
-        # MQ-2 Smoke / Flammable Gas
-        if "mq2" in self.gas_alert_events:
-            if current_time < self.gas_alert_events["mq2"]:
-                mq2 = round(420.0 + random.uniform(-30.0, 60.0), 1)
-            else:
-                del self.gas_alert_events["mq2"]
-                mq2 = round(110.0 + random.uniform(-10.0, 15.0), 1)
-        elif random.random() < 0.02 and not self.gas_alert_events:
-            self.gas_alert_events["mq2"] = current_time + random.uniform(12.0, 16.0)
-            mq2 = round(420.0 + random.uniform(-30.0, 60.0), 1)
-        else:
-            mq2 = round(110.0 + random.uniform(-10.0, 15.0), 1)
-
-        return {"mq7": mq7, "mq135": mq135, "mq136": mq136, "mq2": mq2}
+        return {"mq7": mq7, "mq135": mq135, "mq136": mq136}
 
     def _is_offline(self, pole_id: int, current_time: float) -> bool:
         """Returns True if node packet is dropped (offline). Keep offline periods short (8s) and rare so poles remain active most of the time."""
@@ -226,7 +213,6 @@ class MockSimulator:
                 "mq7": None,
                 "mq135": None,
                 "mq136": None,
-                "mq2": None,
                 "source": "SIMULATION"
             }
         elif pole_rotation == 2:
@@ -248,11 +234,10 @@ class MockSimulator:
                 "mq7": None,
                 "mq135": None,
                 "mq136": None,
-                "mq2": None,
                 "source": "SIMULATION"
             }
         else:
-            # Pole 3: Root Hub Gateway with DHT11 (Temperature & Humidity) + MQ Gas Sensors (MQ-7, MQ-135, MQ-136, MQ-2)
+            # Pole 3: Root Hub Gateway with DHT11 (Temperature & Humidity) + MQ Gas Sensors (MQ-7, MQ-135, MQ-136)
             gases = self._check_gas_sensors(t)
             raw = {
                 "seq": self.seq,
@@ -264,7 +249,6 @@ class MockSimulator:
                 "mq7": gases["mq7"],
                 "mq135": gases["mq135"],
                 "mq136": gases["mq136"],
-                "mq2": gases["mq2"],
                 "source": "SIMULATION"
             }
 
