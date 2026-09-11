@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  FileText,
   Download,
   Printer,
   Calendar,
@@ -102,13 +101,13 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ persistentAlerts }) =>
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Top Banner / Generator Controls */}
+      {/* Action Controls Toolbar */}
       <div
         style={{
           backgroundColor: '#ffffff',
           border: '1px solid #e2e8f0',
           borderRadius: '8px',
-          padding: '18px 24px',
+          padding: '12px 18px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -116,20 +115,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ persistentAlerts }) =>
           gap: '12px'
         }}
       >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FileText style={{ width: '20px', height: '20px', color: '#2563eb' }} />
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a' }}>
-              Laboratory Telemetry & Hazard Audit Report
-            </h2>
-          </div>
-          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-            Aggregate statistical audit summaries, incident histories, and compliance records.
-          </p>
-        </div>
-
-        {/* Action Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '13px', fontWeight: '700', color: '#1e293b' }}>
+            Report Scope:
+          </span>
           {/* Time Window Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Calendar style={{ width: '15px', height: '15px', color: '#64748b' }} />

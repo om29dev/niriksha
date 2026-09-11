@@ -15,21 +15,17 @@ desktop.ini
 *.sublime-project
 *.sublime-workspace
 
-# Environment Variables & Secrets (NEVER COMMIT SENSITIVE KEYS)
+# Environment Variables & Secrets
 .env
-.env.local
-.env.*.local
-backend/.env
-frontend/.env
+.env.*
 *.env
 
-# Database Local Files
+# Local Databases
 *.db
 *.sqlite
 *.sqlite3
-backend/iot_data.db
 
-# Python & FastAPI Artifacts
+# Python & Virtual Environments
 __pycache__/
 *.py[cod]
 *$py.class
@@ -38,52 +34,30 @@ __pycache__/
 env/
 venv/
 .venv/
-ENV/
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
 *.egg-info/
-.installed.cfg
-*.egg
 .pytest_cache/
 .coverage
 htmlcov/
 
-# Node.js & React Frontend Artifacts
+# Node.js & Vite Frontend
 node_modules/
-frontend/node_modules/
+dist/
+dist-ssr/
+*.local
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-.pnpm-debug.log*
-dist/
-frontend/dist/
-dist-ssr/
-frontend/dist-ssr/
-*.local
 
-# Microcontroller & Arduino Build Artifacts
+# Microcontroller & Arduino Firmware
 *.hex
 *.bin
 *.elf
 .pio/
-.pioenvs/
-.piolibdeps/
 
-# Application Runtime Logs
+# Logs & AI Generated Transcripts
 logs/
 *.log
-backend/logs/
-frontend/logs/
+backend/data/ai_logs/*.md
+!backend/data/ai_logs/.gitkeep
+

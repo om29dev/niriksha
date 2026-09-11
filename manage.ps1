@@ -14,6 +14,24 @@ if (-not (Test-Path $LogsDir)) {
 
 $BackendLog = Join-Path $LogsDir "backend.log"
 $FrontendLog = Join-Path $LogsDir "frontend.log"
+$OllamaLog = Join-Path $LogsDir "ollama.log"
+
+function Find-Ollama {
+    $cmd = Get-Command "ollama" -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    
+    $commonPaths = @(
+        "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe",
+        "$env:LOCALAPPDATA\Ollama\ollama.exe",
+        "C:\ollama\ollama.exe",
+        "C:\Program Files\Ollama\ollama.exe",
+        "D:\ollama\ollama.exe"
+    )
+    foreach ($path in $commonPaths) {
+        if (Test-Path $path) { return $path }
+    }
+    return $null
+}
 
 function Show-Help {
     Write-Host "`n=========================================================" -ForegroundColor Cyan
@@ -21,11 +39,11 @@ function Show-Help {
     Write-Host "=========================================================" -ForegroundColor Cyan
     Write-Host "Usage: .\manage.ps1 <command>`n" -ForegroundColor White
     Write-Host "Available Commands:" -ForegroundColor Yellow
-    Write-Host "  start    " -NoNewline -ForegroundColor Green; Write-Host "Starts both backend and frontend in the background"
-    Write-Host "  debug    " -NoNewline -ForegroundColor Green; Write-Host "Starts both services in this single window with [BACKEND]/[FRONTEND] logs"
-    Write-Host "  stop     " -NoNewline -ForegroundColor Green; Write-Host "Stops both backend and frontend services"
-    Write-Host "  restart  " -NoNewline -ForegroundColor Green; Write-Host "Restarts both services"
-    Write-Host "  status   " -NoNewline -ForegroundColor Green; Write-Host "Checks if backend and frontend are running"
+    Write-Host "  start    " -NoNewline -ForegroundColor Green; Write-Host "Starts Ollama AI, FastAPI backend, and React frontend"
+    Write-Host "  debug    " -NoNewline -ForegroundColor Green; Write-Host "Starts all services in this window with unified logs"
+    Write-Host "  stop     " -NoNewline -ForegroundColor Green; Write-Host "Stops Ollama AI, backend, and frontend services"
+    Write-Host "  restart  " -NoNewline -ForegroundColor Green; Write-Host "Restarts all 3 services"
+    Write-Host "  status   " -NoNewline -ForegroundColor Green; Write-Host "Checks if Ollama, backend, and frontend are running"
     Write-Host "  logs     " -NoNewline -ForegroundColor Green; Write-Host "Streams live backend log output (Ctrl+C to exit)"
     Write-Host "  help     " -NoNewline -ForegroundColor Green; Write-Host "Displays this command guide`n"
     Write-Host "Examples:" -ForegroundColor Gray
@@ -40,10 +58,17 @@ function Start-Debug-Unified {
 
     Write-Host "`n=========================================================" -ForegroundColor Cyan
     Write-Host "  Starting Unified Debug Stream (Current Window)" -ForegroundColor Cyan
+    Write-Host "  Ollama AI Engine : http://127.0.0.1:11434" -ForegroundColor White
     Write-Host "  FastAPI Backend  : http://127.0.0.1:8000" -ForegroundColor White
     Write-Host "  React Dashboard  : http://localhost:5173" -ForegroundColor White
-    Write-Host "  Press Ctrl+C to terminate both services" -ForegroundColor Yellow
+    Write-Host "  Press Ctrl+C to terminate services" -ForegroundColor Yellow
     Write-Host "=========================================================`n" -ForegroundColor Cyan
+
+    $ollamaExe = Find-Ollama
+    if ($ollamaExe) {
+        Write-Host "[OLLAMA] Starting Ollama server in background..." -ForegroundColor Magenta
+        Start-Process -FilePath $ollamaExe -ArgumentList "serve" -WindowStyle Hidden
+    }
 
     $backendPsi = New-Object System.Diagnostics.ProcessStartInfo
     $backendPsi.FileName = "cmd.exe"
@@ -63,8 +88,6 @@ function Start-Debug-Unified {
 
     $backendProc = [System.Diagnostics.Process]::Start($backendPsi)
     $frontendProc = [System.Diagnostics.Process]::Start($frontendPsi)
-
-    $sync = [hashtable]::Synchronized(@{})
 
     $backendOutHandler = {
         if (-not [string]::IsNullOrEmpty($EventArgs.Data)) {
@@ -133,21 +156,38 @@ function Start-Services {
     # Terminate any existing instances first
     Stop-Services -Quiet
 
-    Write-Host "[1/2] Launching FastAPI Backend on http://127.0.0.1:8000 (logging to logs\backend.log)..." -ForegroundColor Yellow
+    # Check / Start Ollama
+    $ollamaPort = Get-NetTCPConnection -LocalPort 11434 -ErrorAction SilentlyContinue
+    $ollamaExe = Find-Ollama
+
+    if (-not $ollamaPort) {
+        if ($ollamaExe) {
+            Write-Host "[1/3] Launching Ollama AI on http://127.0.0.1:11434 (logging to logs\ollama.log)..." -ForegroundColor Magenta
+            Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$ollamaExe`" serve > `"$OllamaLog`" 2>&1" -WindowStyle Hidden
+        } else {
+            Write-Host "[1/3] Ollama binary not found in PATH. Skipping auto-start (rule engine active)." -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "[1/3] Ollama AI server already running on http://127.0.0.1:11434." -ForegroundColor Green
+    }
+
+    Write-Host "[2/3] Launching FastAPI Backend on http://127.0.0.1:8000 (logging to logs\backend.log)..." -ForegroundColor Yellow
     Start-Process -FilePath "cmd.exe" -ArgumentList "/c cd /d `"$BackendDir`" && python -m uvicorn main:app --host 127.0.0.1 --port 8000 > `"$BackendLog`" 2>&1" -WindowStyle Hidden
 
-    Write-Host "[2/2] Launching React+Vite Frontend on http://localhost:5173 (logging to logs\frontend.log)..." -ForegroundColor Yellow
+    Write-Host "[3/3] Launching React+Vite Frontend on http://localhost:5173 (logging to logs\frontend.log)..." -ForegroundColor Yellow
     Start-Process -FilePath "cmd.exe" -ArgumentList "/c cd /d `"$FrontendDir`" && npm run dev > `"$FrontendLog`" 2>&1" -WindowStyle Hidden
 
     Write-Host "`n---------------------------------------------------------" -ForegroundColor Green
     Write-Host "[SUCCESS] Services started successfully!" -ForegroundColor Green
-    Write-Host " - FastAPI Backend : http://127.0.0.1:8000" -ForegroundColor White
-    Write-Host " - WebSocket Stream: ws://127.0.0.1:8000/ws" -ForegroundColor White
-    Write-Host " - React Dashboard : http://localhost:5173" -ForegroundColor White
-    Write-Host " - Backend Logs    : .\logs\backend.log" -ForegroundColor Gray
-    Write-Host " - Frontend Logs   : .\logs\frontend.log" -ForegroundColor Gray
+    Write-Host " - Ollama AI Engine : http://127.0.0.1:11434" -ForegroundColor White
+    Write-Host " - FastAPI Backend  : http://127.0.0.1:8000" -ForegroundColor White
+    Write-Host " - WebSocket Stream : ws://127.0.0.1:8000/ws" -ForegroundColor White
+    Write-Host " - React Dashboard  : http://localhost:5173" -ForegroundColor White
+    Write-Host " - Ollama Logs      : .\logs\ollama.log" -ForegroundColor Gray
+    Write-Host " - Backend Logs     : .\logs\backend.log" -ForegroundColor Gray
+    Write-Host " - Frontend Logs    : .\logs\frontend.log" -ForegroundColor Gray
     Write-Host "---------------------------------------------------------" -ForegroundColor Green
-    Write-Host "To STOP both services:     .\manage.ps1 stop" -ForegroundColor Cyan
+    Write-Host "To STOP all services:      .\manage.ps1 stop" -ForegroundColor Cyan
     Write-Host "To VIEW live backend logs: .\manage.ps1 logs" -ForegroundColor Cyan
     Write-Host "To START in debug mode:    .\manage.ps1 debug" -ForegroundColor Cyan
     Write-Host "To SEE all commands:       .\manage.ps1 help`n" -ForegroundColor Cyan
@@ -157,12 +197,23 @@ function Stop-Services {
     param([switch]$Quiet)
 
     if (-not $Quiet) {
-        Write-Host "`nStopping IoT Dashboard services..." -ForegroundColor Yellow
+        Write-Host "`nStopping IoT Dashboard & AI services..." -ForegroundColor Yellow
     }
 
     # Terminate by window title if debug windows are open
     taskkill /F /FI "WINDOWTITLE eq IoT-Backend-FastAPI*" 2>$null | Out-Null
     taskkill /F /FI "WINDOWTITLE eq IoT-Frontend-Vite*" 2>$null | Out-Null
+
+    # Terminate process on port 11434 (Ollama if run as local service)
+    $port11434 = Get-NetTCPConnection -LocalPort 11434 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique
+    if ($port11434) {
+        foreach ($pidToKill in $port11434) {
+            Stop-Process -Id $pidToKill -Force -ErrorAction SilentlyContinue
+            if (-not $Quiet) {
+                Write-Host "Killed Ollama process (PID $pidToKill)" -ForegroundColor Gray
+            }
+        }
+    }
 
     # Terminate process on port 8000 (Backend)
     $port8000 = Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique
@@ -187,7 +238,7 @@ function Stop-Services {
     }
 
     if (-not $Quiet) {
-        Write-Host "[SUCCESS] All frontend and backend services stopped.`n" -ForegroundColor Green
+        Write-Host "[SUCCESS] All frontend, backend, and Ollama services stopped.`n" -ForegroundColor Green
     }
 }
 
@@ -210,12 +261,15 @@ switch ($Action.ToLower()) {
         Start-Services -IsDebug $false
     }
     "status"  {
+        $oRunning = Get-NetTCPConnection -LocalPort 11434 -ErrorAction SilentlyContinue
         $bRunning = Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue
         $fRunning = Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue
-        Write-Host "`nBackend (Port 8000) : $(if($bRunning){'RUNNING'}else{'STOPPED'})" -ForegroundColor $(if($bRunning){'Green'}else{'Red'})
-        Write-Host "Frontend (Port 5173): $(if($fRunning){'RUNNING'}else{'STOPPED'})`n" -ForegroundColor $(if($fRunning){'Green'}else{'Red'})
+        Write-Host "`nOllama AI (Port 11434): $(if($oRunning){'RUNNING'}else{'STOPPED'})" -ForegroundColor $(if($oRunning){'Green'}else{'Yellow'})
+        Write-Host "Backend   (Port 8000) : $(if($bRunning){'RUNNING'}else{'STOPPED'})" -ForegroundColor $(if($bRunning){'Green'}else{'Red'})
+        Write-Host "Frontend  (Port 5173) : $(if($fRunning){'RUNNING'}else{'STOPPED'})`n" -ForegroundColor $(if($fRunning){'Green'}else{'Red'})
     }
     "logs"    { Show-Logs }
     "help"    { Show-Help }
     default   { Show-Help }
 }
+

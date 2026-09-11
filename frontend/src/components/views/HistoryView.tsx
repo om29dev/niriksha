@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  History,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
@@ -29,7 +28,7 @@ export const HistoryView: React.FC = () => {
     setIsLoading(true);
     try {
       const offset = (currentPage - 1) * pageSize;
-      let url = `http://127.0.0.1:8000/api/telemetry/history?limit=${pageSize}&offset=${offset}`;
+      let url = `http://127.0.0.1:8000/api/telemetry/recent?limit=${pageSize}&offset=${offset}`;
 
       if (poleFilter !== 'all') {
         url += `&pole_id=${poleFilter}`;
@@ -42,12 +41,12 @@ export const HistoryView: React.FC = () => {
 
       const res = await fetch(url);
       const json = await res.json();
-      if (json && json.data) {
+      if (json && json.data && Array.isArray(json.data)) {
         setRecords(json.data);
         setTotalCount(json.total || 0);
       }
     } catch (err) {
-      console.error('Failed to load telemetry history', err);
+      console.error('Failed to fetch historical telemetry', err);
     } finally {
       setIsLoading(false);
     }
@@ -55,9 +54,9 @@ export const HistoryView: React.FC = () => {
 
   useEffect(() => {
     fetchHistory();
-  }, [currentPage, pageSize, poleFilter, uprightFilter]);
+  }, [currentPage, poleFilter, uprightFilter]);
 
-  const totalPages = Math.ceil(totalCount / pageSize) || 1;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const formatTimestamp = (ts: number | string) => {
     if (!ts) return 'N/A';
@@ -67,13 +66,13 @@ export const HistoryView: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Top Banner & Filters */}
+      {/* Filters Toolbar */}
       <div
         style={{
           backgroundColor: '#ffffff',
           border: '1px solid #e2e8f0',
           borderRadius: '8px',
-          padding: '18px 24px',
+          padding: '12px 18px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -81,20 +80,11 @@ export const HistoryView: React.FC = () => {
           gap: '12px'
         }}
       >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <History style={{ width: '20px', height: '20px', color: '#2563eb' }} />
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a' }}>
-              Historical Telemetry Log & Packet Explorer
-            </h2>
-          </div>
-          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-            Search, filter, and inspect chronological sensor frames preserved in PostgreSQL time-series logs.
-          </p>
-        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '13px', fontWeight: '700', color: '#1e293b' }}>
+            Filter Log:
+          </span>
 
-        {/* Filter Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {/* Scalable Pole Filter */}
           <PoleSelectDropdown
             poles={DEFAULT_POLES}

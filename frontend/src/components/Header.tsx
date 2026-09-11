@@ -3,10 +3,17 @@ import { Activity, Bell, AlertTriangle, WifiOff, CheckCircle2, ChevronRight, Spa
 import type { PoleId } from '../types/telemetry';
 import type { ActiveView } from './Sidebar';
 
-interface HeaderProps {
+export interface HeaderProps {
   activeView?: ActiveView;
   downPoles: PoleId[];
   offlinePoles: PoleId[];
+  liveHazardsCount?: number;
+  isVoltageEmergency?: boolean;
+  isFireEmergency?: boolean;
+  fireHazardPoles?: PoleId[];
+  floodHazardPoles?: PoleId[];
+  tempHazardPoles?: PoleId[];
+  gasHazardPoles?: PoleId[];
   wsConnected: boolean;
   useSimulation: boolean;
   selectedPort: string;
@@ -59,13 +66,24 @@ export const Header: React.FC<HeaderProps> = ({
   activeView = 'dashboard',
   downPoles,
   offlinePoles,
+  liveHazardsCount = 0,
+  isVoltageEmergency = false,
+  isFireEmergency = false,
+  fireHazardPoles = [],
+  floodHazardPoles = [],
+  tempHazardPoles = [],
+  gasHazardPoles = [],
   unresolvedAlertsCount = 0,
   onNavigateAlerts,
   onOpenAi
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
-  const totalAlerts = Math.max(downPoles.length + offlinePoles.length, unresolvedAlertsCount);
+  const totalAlerts = Math.max(
+    downPoles.length + offlinePoles.length + liveHazardsCount,
+    unresolvedAlertsCount
+  );
   const currentMeta = VIEW_METADATA[activeView] || VIEW_METADATA.dashboard;
+  const isCriticalSOS = downPoles.length > 0 || isVoltageEmergency || isFireEmergency;
 
   return (
     <header style={{
@@ -149,9 +167,9 @@ export const Header: React.FC<HeaderProps> = ({
             padding: '6px 14px',
             borderRadius: '8px',
             border: '1px solid',
-            borderColor: totalAlerts > 0 ? (downPoles.length > 0 ? '#fca5a5' : '#fcd34d') : '#cbd5e1',
-            backgroundColor: totalAlerts > 0 ? (downPoles.length > 0 ? '#fef2f2' : '#fffbeb') : '#ffffff',
-            color: totalAlerts > 0 ? (downPoles.length > 0 ? '#b91c1c' : '#92400e') : '#334155',
+            borderColor: totalAlerts > 0 ? (isCriticalSOS ? '#fca5a5' : '#fcd34d') : '#cbd5e1',
+            backgroundColor: totalAlerts > 0 ? (isCriticalSOS ? '#fef2f2' : '#fffbeb') : '#ffffff',
+            color: totalAlerts > 0 ? (isCriticalSOS ? '#b91c1c' : '#92400e') : '#334155',
             fontSize: '13px',
             fontWeight: '600',
             cursor: 'pointer',
@@ -165,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({
             e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
           }}
         >
-          <Bell style={{ width: '15px', height: '15px', color: totalAlerts > 0 ? (downPoles.length > 0 ? '#dc2626' : '#d97706') : '#64748b' }} />
+          <Bell style={{ width: '15px', height: '15px', color: totalAlerts > 0 ? (isCriticalSOS ? '#dc2626' : '#d97706') : '#64748b' }} />
           <span>Alerts</span>
           {totalAlerts > 0 ? (
             <span style={{
@@ -173,7 +191,7 @@ export const Header: React.FC<HeaderProps> = ({
               fontWeight: '700',
               padding: '1px 7px',
               borderRadius: '9999px',
-              backgroundColor: downPoles.length > 0 ? '#dc2626' : '#d97706',
+              backgroundColor: isCriticalSOS ? '#dc2626' : '#d97706',
               color: '#ffffff',
               minWidth: '20px',
               textAlign: 'center',
@@ -218,17 +236,55 @@ export const Header: React.FC<HeaderProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
               <span style={{ fontSize: '12px', fontWeight: '700', color: '#0f172a' }}>System Alerts</span>
               <span style={{ fontSize: '11px', color: '#64748b' }}>
-                {totalAlerts > 0 ? `${totalAlerts} active notices` : 'All normal'}
+                {totalAlerts > 0 ? `${totalAlerts} active / unresolved` : 'All normal'}
               </span>
             </div>
 
             {totalAlerts === 0 ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', color: '#059669', fontSize: '12px' }}>
                 <CheckCircle2 style={{ width: '16px', height: '16px' }} />
-                <span>All 3 nodes upright & connected</span>
+                <span>All nodes upright & connected</span>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '280px', overflowY: 'auto' }}>
+                {isFireEmergency && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    backgroundColor: '#fff7ed',
+                    border: '1px solid #fed7aa',
+                    fontSize: '11px',
+                    color: '#c2410c'
+                  }}>
+                    <AlertTriangle style={{ width: '14px', height: '14px', color: '#ea580c', flexShrink: 0 }} />
+                    <div>
+                      <strong>Fire Outbreak (&gt;60°C):</strong> Pole {fireHazardPoles.join(', ')}
+                    </div>
+                  </div>
+                )}
+
+                {isVoltageEmergency && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    backgroundColor: '#fff1f2',
+                    border: '1px solid #fecdd3',
+                    fontSize: '11px',
+                    color: '#9f1239'
+                  }}>
+                    <AlertTriangle style={{ width: '14px', height: '14px', color: '#e11d48', flexShrink: 0 }} />
+                    <div>
+                      <strong>Water Electrification (&gt;5V)</strong>: Active Live Hazard
+                    </div>
+                  </div>
+                )}
+
                 {downPoles.length > 0 && (
                   <div style={{
                     display: 'flex',
@@ -248,6 +304,63 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                 )}
 
+                {floodHazardPoles.length > 0 && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    backgroundColor: '#fffbeb',
+                    border: '1px solid #fde68a',
+                    fontSize: '11px',
+                    color: '#92400e'
+                  }}>
+                    <AlertTriangle style={{ width: '14px', height: '14px', color: '#d97706', flexShrink: 0 }} />
+                    <div>
+                      <strong>Flood Inundation (&gt;100cm):</strong> Pole {floodHazardPoles.join(', ')}
+                    </div>
+                  </div>
+                )}
+
+                {tempHazardPoles.length > 0 && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    backgroundColor: '#fffbeb',
+                    border: '1px solid #fde68a',
+                    fontSize: '11px',
+                    color: '#92400e'
+                  }}>
+                    <AlertTriangle style={{ width: '14px', height: '14px', color: '#d97706', flexShrink: 0 }} />
+                    <div>
+                      <strong>High Ambient Temp (&gt;45°C):</strong> Pole {tempHazardPoles.join(', ')}
+                    </div>
+                  </div>
+                )}
+
+                {gasHazardPoles.length > 0 && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    backgroundColor: '#fff7ed',
+                    border: '1px solid #fed7aa',
+                    fontSize: '11px',
+                    color: '#c2410c'
+                  }}>
+                    <AlertTriangle style={{ width: '14px', height: '14px', color: '#ea580c', flexShrink: 0 }} />
+                    <div>
+                      <strong>Toxic Gas Level High:</strong> Pole {gasHazardPoles.join(', ')}
+                    </div>
+                  </div>
+                )}
+
                 {offlinePoles.length > 0 && (
                   <div style={{
                     display: 'flex',
@@ -263,6 +376,25 @@ export const Header: React.FC<HeaderProps> = ({
                     <WifiOff style={{ width: '14px', height: '14px', color: '#d97706', flexShrink: 0 }} />
                     <div>
                       <strong>Offline Node:</strong> Pole {offlinePoles.join(', ')}
+                    </div>
+                  </div>
+                )}
+
+                {unresolvedAlertsCount > 0 && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '11px',
+                    color: '#475569'
+                  }}>
+                    <Bell style={{ width: '14px', height: '14px', color: '#64748b', flexShrink: 0 }} />
+                    <div>
+                      <strong>{unresolvedAlertsCount} Unresolved Historical Actions</strong> in DB
                     </div>
                   </div>
                 )}

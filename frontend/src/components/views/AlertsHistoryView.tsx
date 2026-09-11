@@ -3,26 +3,21 @@ import {
   AlertTriangle,
   Flame,
   Zap,
-  Volume2,
-  VolumeX,
   Waves,
   Thermometer,
   CloudRain,
-  ShieldCheck,
-  Search,
-  Download,
-  Check,
   CheckCheck,
-  Clock,
-  ExternalLink,
-  Info,
-  ChevronLeft,
-  ChevronRight
+  Download,
+  Info
 } from 'lucide-react';
 import type { PoleId, PoleState, PersistentAlert } from '../../types/telemetry';
 import { DEFAULT_GAS_THRESHOLDS, type GasThresholdConfig } from '../../constants/gasThresholds';
-import { PoleSelectDropdown } from '../PoleSelectDropdown';
-import { DEFAULT_POLES } from '../../constants/polesCatalog';
+import { AlertsStatusHeader } from '../alerts/AlertsStatusHeader';
+import { AlertsKpiStrip } from '../alerts/AlertsKpiStrip';
+import { LiveIncidentsCard, type LiveIncidentItem } from '../alerts/LiveIncidentsCard';
+import { AlertsFilterBar } from '../alerts/AlertsFilterBar';
+import { AlertsTable } from '../alerts/AlertsTable';
+import { AlertsPagination } from '../alerts/AlertsPagination';
 
 interface AlertsHistoryViewProps {
   downPoles: PoleId[];
@@ -85,7 +80,7 @@ export const AlertsHistoryView: React.FC<AlertsHistoryViewProps> = ({
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Real-time calculated incidents (from live telemetry states)
-  const realTimeIncidents = useMemo(() => [
+  const realTimeIncidents: LiveIncidentItem[] = useMemo(() => [
     ...(isVoltageEmergency ? [{
       id: 'voltage',
       title: 'Water Electrification Emergency (>5V)',
@@ -310,269 +305,32 @@ export const AlertsHistoryView: React.FC<AlertsHistoryViewProps> = ({
   const warningCount = persistentAlerts.filter(a => a.severity === 'warning' && a.status === 'UNRESOLVED').length;
   const resolvedCount = persistentAlerts.filter(a => a.status === 'RESOLVED').length;
 
-  const unresolvedOnCurrentPage = paginatedAlerts.filter(a => a.status === 'UNRESOLVED');
-  const isAllPageSelected = unresolvedOnCurrentPage.length > 0 && unresolvedOnCurrentPage.every(a => selectedAlertIds.has(a.id));
+  const unresolvedOnCurrentPageCount = paginatedAlerts.filter(a => a.status === 'UNRESOLVED').length;
+  const isAllPageSelected = unresolvedOnCurrentPageCount > 0 && paginatedAlerts.filter(a => a.status === 'UNRESOLVED').every(a => selectedAlertIds.has(a.id));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Top Header Card */}
-      <div style={{
-        backgroundColor: '#ffffff',
-        border: '1px solid #e2e8f0',
-        borderRadius: '8px',
-        padding: '20px 24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '14px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-      }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
-              Safety & Hazard Incident Management
-            </h2>
-            {unresolvedAlerts.length > 0 && (
-              <span style={{
-                fontSize: '12px',
-                fontWeight: '700',
-                padding: '2px 8px',
-                borderRadius: '9999px',
-                backgroundColor: '#fee2e2',
-                color: '#dc2626',
-                border: '1px solid #fca5a5'
-              }}>
-                {unresolvedAlerts.length} Unresolved Action{unresolvedAlerts.length !== 1 ? 's' : ''}
-              </span>
-            )}
-          </div>
-          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', margin: 0 }}>
-            Real-time hazard detection with persistent incident logging in PostgreSQL. Historical alerts remain tracked until manually resolved.
-          </p>
-        </div>
-
-        {/* Right side controls: Alarm Siren Mute toggle positioned on the far right */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <button
-            onClick={onToggleMute}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '6px',
-              fontSize: '13px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              border: '1px solid',
-              backgroundColor: audioMuted ? '#fef2f2' : '#eff6ff',
-              color: audioMuted ? '#dc2626' : '#2563eb',
-              borderColor: audioMuted ? '#fecaca' : '#bfdbfe',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            {audioMuted ? <VolumeX style={{ width: '16px', height: '16px' }} /> : <Volume2 style={{ width: '16px', height: '16px' }} />}
-            {audioMuted ? 'Alarm Siren Muted' : 'Alarm Siren Armed'}
-          </button>
-        </div>
-      </div>
+      {/* Incident Status & Audio Siren Controls */}
+      <AlertsStatusHeader
+        unresolvedAlerts={unresolvedAlerts}
+        liveHazardsCount={realTimeIncidents.length}
+        audioMuted={audioMuted}
+        onToggleMute={onToggleMute}
+      />
 
       {/* KPI Metric Strip */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '12px'
-      }}>
-        <div style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          padding: '14px 18px',
-          borderLeft: '4px solid #ef4444'
-        }}>
-          <div style={{ fontSize: '11px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase' }}>
-            Critical Unresolved
-          </div>
-          <div style={{ fontSize: '22px', fontWeight: '700', color: criticalCount > 0 ? '#dc2626' : '#0f172a', marginTop: '4px' }}>
-            {criticalCount}
-          </div>
-          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-            Immediate hazard intervention required
-          </div>
-        </div>
+      <AlertsKpiStrip
+        criticalCount={criticalCount}
+        warningCount={warningCount}
+        liveCount={realTimeIncidents.length}
+        resolvedCount={resolvedCount}
+      />
 
-        <div style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          padding: '14px 18px',
-          borderLeft: '4px solid #f59e0b'
-        }}>
-          <div style={{ fontSize: '11px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase' }}>
-            Warning Unresolved
-          </div>
-          <div style={{ fontSize: '22px', fontWeight: '700', color: warningCount > 0 ? '#b45309' : '#0f172a', marginTop: '4px' }}>
-            {warningCount}
-          </div>
-          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-            Submersion, heat, gas threshold notices
-          </div>
-        </div>
-
-        <div style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          padding: '14px 18px',
-          borderLeft: '4px solid #2563eb'
-        }}>
-          <div style={{ fontSize: '11px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase' }}>
-            Real-Time Live Hazards
-          </div>
-          <div style={{ fontSize: '22px', fontWeight: '700', color: realTimeIncidents.length > 0 ? '#2563eb' : '#059669', marginTop: '4px' }}>
-            {realTimeIncidents.length}
-          </div>
-          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-            Physically breaching limits at this second
-          </div>
-        </div>
-
-        <div style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          padding: '14px 18px',
-          borderLeft: '4px solid #10b981'
-        }}>
-          <div style={{ fontSize: '11px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase' }}>
-            Resolved Incidents
-          </div>
-          <div style={{ fontSize: '22px', fontWeight: '700', color: '#047857', marginTop: '4px' }}>
-            {resolvedCount}
-          </div>
-          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-            Archived in PostgreSQL history
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION 1: Real-Time Active Critical Conditions (Only shown when active incidents exist) */}
-      {realTimeIncidents.length > 0 && (
-        <div style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: '#ef4444',
-                boxShadow: '0 0 0 3px #fee2e2'
-              }} />
-              <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#0f172a', margin: 0 }}>
-                Real-Time Hardware Sensor State (Current Scan)
-              </h3>
-            </div>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>
-              {`${realTimeIncidents.length} active physical hazards`}
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {realTimeIncidents.map((incident) => {
-              const Icon = incident.icon;
-              const isCrit = incident.severity === 'critical';
-              return (
-                <div
-                  key={incident.id}
-                  style={{
-                    backgroundColor: isCrit ? '#fff1f2' : '#fffbeb',
-                    border: isCrit ? '1px solid #fecdd3' : '1px solid #fde68a',
-                    borderLeft: `4px solid ${isCrit ? '#dc2626' : '#d97706'}`,
-                    borderRadius: '6px',
-                    padding: '12px 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '12px',
-                    flexWrap: 'wrap'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '6px',
-                      backgroundColor: isCrit ? '#fee2e2' : '#fef3c7',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: isCrit ? '#dc2626' : '#d97706',
-                      flexShrink: 0
-                    }}>
-                      <Icon style={{ width: '18px', height: '18px' }} />
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a' }}>
-                          {incident.title}
-                        </span>
-                        <span style={{
-                          fontSize: '10px',
-                          fontWeight: '700',
-                          textTransform: 'uppercase',
-                          padding: '1px 6px',
-                          borderRadius: '4px',
-                          backgroundColor: isCrit ? '#fee2e2' : '#fef3c7',
-                          color: isCrit ? '#b91c1c' : '#b45309'
-                        }}>
-                          LIVE
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                        {incident.description}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {incident.poles.map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => onSelectPole(p)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          padding: '5px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid #cbd5e1',
-                          backgroundColor: '#ffffff',
-                          color: '#0f172a',
-                          fontSize: '11px',
-                          fontWeight: '600',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <span>Jump to Pole {p}</span>
-                        <ExternalLink style={{ width: '11px', height: '11px' }} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Real-Time Active Critical Conditions (Only shown when active incidents exist) */}
+      <LiveIncidentsCard
+        incidents={realTimeIncidents}
+        onSelectPole={onSelectPole}
+      />
 
       {/* SECTION 2: Persistent Alerts History & Resolution Center */}
       <div style={{
@@ -711,422 +469,40 @@ export const AlertsHistoryView: React.FC<AlertsHistoryViewProps> = ({
         </div>
 
         {/* Filter & Search Bar */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-          backgroundColor: '#fafbfc',
-          padding: '12px 16px',
-          borderRadius: '8px',
-          border: '1px solid #e2e8f0'
-        }}>
-          {/* Search Box */}
-          <div style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '6px 10px' }}>
-            <Search style={{ width: '15px', height: '15px', color: '#94a3b8' }} />
-            <input
-              type="text"
-              placeholder="Search by title, description, or sensor..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                border: 'none',
-                outline: 'none',
-                fontSize: '12px',
-                width: '100%',
-                color: '#0f172a',
-                backgroundColor: 'transparent'
-              }}
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                style={{ border: 'none', background: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '11px', padding: '0 4px' }}
-              >
-                Clear
-              </button>
-            )}
-          </div>
-
-          {/* Scalable Pole Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>Pole:</span>
-            <PoleSelectDropdown
-              poles={DEFAULT_POLES}
-              selectedPoleId={selectedPoleFilter}
-              onSelectPole={(id) => setSelectedPoleFilter(id)}
-              allowAllOption={true}
-              allOptionLabel="All Nodes"
-              width="210px"
-              size="sm"
-            />
-          </div>
-
-          {/* Severity Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Severity:</span>
-            <select
-              value={selectedSeverityFilter}
-              onChange={(e) => setSelectedSeverityFilter(e.target.value as any)}
-              style={{
-                fontSize: '12px',
-                fontWeight: '500',
-                color: '#334155',
-                border: '1px solid #cbd5e1',
-                borderRadius: '6px',
-                padding: '6px 10px',
-                backgroundColor: '#ffffff',
-                outline: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              <option value="all">All Severities</option>
-              <option value="critical">Critical</option>
-              <option value="warning">Warning</option>
-              <option value="info">Info</option>
-            </select>
-          </div>
-
-          {/* Status Filter (visible on "All" tab) */}
-          {activeTab === 'all' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Status:</span>
-              <select
-                value={selectedStatusFilter}
-                onChange={(e) => setSelectedStatusFilter(e.target.value as any)}
-                style={{
-                  fontSize: '12px',
-                  fontWeight: '500',
-                  color: '#334155',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
-                  padding: '6px 10px',
-                  backgroundColor: '#ffffff',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="all">All States</option>
-                <option value="UNRESOLVED">Unresolved Only</option>
-                <option value="RESOLVED">Resolved Only</option>
-              </select>
-            </div>
-          )}
-
-          {/* Page Size Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}>
-            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Show:</span>
-            <select
-              value={pageSize}
-              onChange={(e) => setPageSize(Number(e.target.value))}
-              style={{
-                fontSize: '12px',
-                fontWeight: '600',
-                color: '#334155',
-                border: '1px solid #cbd5e1',
-                borderRadius: '6px',
-                padding: '5px 8px',
-                backgroundColor: '#ffffff',
-                outline: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              <option value={10}>10 per page</option>
-              <option value={20}>20 per page</option>
-              <option value={50}>50 per page</option>
-              <option value={100}>100 per page</option>
-            </select>
-          </div>
-        </div>
+        <AlertsFilterBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          selectedPoleFilter={selectedPoleFilter}
+          setSelectedPoleFilter={setSelectedPoleFilter}
+          selectedSeverityFilter={selectedSeverityFilter}
+          setSelectedSeverityFilter={setSelectedSeverityFilter}
+          selectedStatusFilter={selectedStatusFilter}
+          setSelectedStatusFilter={setSelectedStatusFilter}
+          activeTab={activeTab}
+          pageSize={pageSize}
+          setPageSize={setPageSize}
+        />
 
         {/* Alerts Table */}
-        <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontWeight: '600' }}>
-                <th style={{ padding: '10px 14px', width: '40px', textAlign: 'center' }}>
-                  <input
-                    type="checkbox"
-                    checked={isAllPageSelected}
-                    onChange={handleToggleSelectAll}
-                    disabled={unresolvedOnCurrentPage.length === 0}
-                    title="Select all unresolved on this page"
-                    style={{ cursor: unresolvedOnCurrentPage.length === 0 ? 'not-allowed' : 'pointer', accentColor: '#2563eb' }}
-                  />
-                </th>
-                <th style={{ padding: '10px 14px' }}>Status</th>
-                <th style={{ padding: '10px 14px' }}>Severity</th>
-                <th style={{ padding: '10px 14px' }}>Node</th>
-                <th style={{ padding: '10px 14px' }}>Incident Title & Details</th>
-                <th style={{ padding: '10px 14px' }}>Trigger Value</th>
-                <th style={{ padding: '10px 14px' }}>Triggered Time</th>
-                <th style={{ padding: '10px 14px' }}>Resolution</th>
-                <th style={{ padding: '10px 14px', textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedAlerts.length === 0 ? (
-                <tr>
-                  <td colSpan={9} style={{ padding: '40px 14px', textAlign: 'center', color: '#94a3b8' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                      <ShieldCheck style={{ width: '32px', height: '32px', color: '#cbd5e1' }} />
-                      <div style={{ fontWeight: '600', color: '#64748b' }}>
-                        {activeTab === 'unresolved' ? 'No unresolved alerts! All historical issues have been resolved.' : 'No alerts match the selected filters.'}
-                      </div>
-                      <div style={{ fontSize: '11px' }}>
-                        Alerts automatically record to PostgreSQL when telemetry thresholds are breached.
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                paginatedAlerts.map((alert) => {
-                  const isUnresolved = alert.status === 'UNRESOLVED';
-                  const isCrit = alert.severity === 'critical';
-                  const isWarn = alert.severity === 'warning';
-                  const isSelected = selectedAlertIds.has(alert.id);
-
-                  // Format timestamp nicely
-                  const triggeredDate = alert.triggered_at ? new Date(alert.triggered_at) : null;
-                  const timeStr = triggeredDate ? triggeredDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Unknown';
-                  const dateStr = triggeredDate ? triggeredDate.toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
-
-                  return (
-                    <tr
-                      key={alert.id}
-                      style={{
-                        borderBottom: '1px solid #f1f5f9',
-                        backgroundColor: isSelected
-                          ? '#eff6ff'
-                          : isUnresolved
-                          ? (isCrit ? '#fffbfc' : '#fffdfa')
-                          : '#ffffff',
-                        transition: 'background-color 0.15s ease'
-                      }}
-                    >
-                      {/* Checkbox for selection */}
-                      <td style={{ padding: '12px 14px', textAlign: 'center', verticalAlign: 'middle' }}>
-                        {isUnresolved ? (
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => handleToggleSelect(alert.id)}
-                            style={{ cursor: 'pointer', accentColor: '#2563eb' }}
-                          />
-                        ) : (
-                          <span style={{ color: '#cbd5e1' }}>—</span>
-                        )}
-                      </td>
-
-                      {/* Status */}
-                      <td style={{ padding: '12px 14px', verticalAlign: 'middle' }}>
-                        <span style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          fontSize: '11px',
-                          fontWeight: '700',
-                          padding: '2px 8px',
-                          borderRadius: '9999px',
-                          backgroundColor: isUnresolved ? '#fee2e2' : '#ecfdf5',
-                          color: isUnresolved ? '#dc2626' : '#059669',
-                          border: `1px solid ${isUnresolved ? '#fca5a5' : '#a7f3d0'}`
-                        }}>
-                          <span style={{
-                            width: '6px',
-                            height: '6px',
-                            borderRadius: '50%',
-                            backgroundColor: isUnresolved ? '#ef4444' : '#10b981'
-                          }} />
-                          {isUnresolved ? 'UNRESOLVED' : 'RESOLVED'}
-                        </span>
-                      </td>
-
-                      {/* Severity */}
-                      <td style={{ padding: '12px 14px', verticalAlign: 'middle' }}>
-                        <span style={{
-                          fontSize: '11px',
-                          fontWeight: '700',
-                          textTransform: 'uppercase',
-                          padding: '2px 7px',
-                          borderRadius: '4px',
-                          backgroundColor: isCrit ? '#fee2e2' : isWarn ? '#fef3c7' : '#f1f5f9',
-                          color: isCrit ? '#b91c1c' : isWarn ? '#b45309' : '#475569'
-                        }}>
-                          {alert.severity}
-                        </span>
-                      </td>
-
-                      {/* Node */}
-                      <td style={{ padding: '12px 14px', verticalAlign: 'middle' }}>
-                        <button
-                          onClick={() => onSelectPole(alert.pole_id)}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            padding: '3px 8px',
-                            borderRadius: '4px',
-                            border: '1px solid #cbd5e1',
-                            backgroundColor: '#f8fafc',
-                            color: '#0f172a',
-                            fontWeight: '600',
-                            fontSize: '11px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Pole {alert.pole_id}
-                          <ExternalLink style={{ width: '10px', height: '10px', color: '#64748b' }} />
-                        </button>
-                      </td>
-
-                      {/* Title & Description */}
-                      <td style={{ padding: '12px 14px', verticalAlign: 'middle', maxWidth: '300px' }}>
-                        <div style={{ fontWeight: '600', color: '#0f172a' }}>
-                          {alert.title}
-                        </div>
-                        <div style={{ color: '#64748b', fontSize: '11px', marginTop: '2px' }}>
-                          {alert.description}
-                        </div>
-                      </td>
-
-                      {/* Trigger Value */}
-                      <td style={{ padding: '12px 14px', verticalAlign: 'middle', fontFamily: 'monospace', fontWeight: '600', color: '#334155' }}>
-                        {alert.trigger_value !== null && alert.trigger_value !== undefined
-                          ? `${alert.trigger_value} ${alert.unit || ''}`
-                          : '—'}
-                      </td>
-
-                      {/* Triggered Time */}
-                      <td style={{ padding: '12px 14px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#334155', fontWeight: '500' }}>
-                          <Clock style={{ width: '12px', height: '12px', color: '#94a3b8' }} />
-                          {timeStr}
-                        </div>
-                        <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '1px' }}>
-                          {dateStr}
-                        </div>
-                      </td>
-
-                      {/* Resolution details */}
-                      <td style={{ padding: '12px 14px', verticalAlign: 'middle' }}>
-                        {alert.status === 'RESOLVED' ? (
-                          <div style={{ fontSize: '11px', color: '#059669' }}>
-                            <div style={{ fontWeight: '600' }}>Resolved by {alert.resolved_by || 'Operator'}</div>
-                            {alert.resolved_at && (
-                              <div style={{ fontSize: '10px', color: '#64748b' }}>
-                                {new Date(alert.resolved_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: '500' }}>
-                            Pending Operator Action
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Action Button: Individual resolve */}
-                      <td style={{ padding: '12px 14px', verticalAlign: 'middle', textAlign: 'right' }}>
-                        {isUnresolved ? (
-                          <button
-                            onClick={() => onResolveAlert(alert.id)}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              padding: '5px 12px',
-                              borderRadius: '6px',
-                              border: '1px solid #10b981',
-                              backgroundColor: '#ecfdf5',
-                              color: '#047857',
-                              fontSize: '11px',
-                              fontWeight: '600',
-                              cursor: 'pointer',
-                              transition: 'all 0.15s ease'
-                            }}
-                          >
-                            <Check style={{ width: '12px', height: '12px' }} />
-                            Resolve
-                          </button>
-                        ) : (
-                          <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>
-                            Archived
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+        <AlertsTable
+          paginatedAlerts={paginatedAlerts}
+          isAllPageSelected={isAllPageSelected}
+          onToggleSelectAll={handleToggleSelectAll}
+          unresolvedOnCurrentPageCount={unresolvedOnCurrentPageCount}
+          selectedAlertIds={selectedAlertIds}
+          onToggleSelect={handleToggleSelect}
+          onSelectPole={onSelectPole}
+          onResolveAlert={onResolveAlert}
+          activeTab={activeTab}
+        />
 
         {/* Pagination & Count Navigation Bar */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px',
-          paddingTop: '8px',
-          borderTop: '1px solid #f1f5f9'
-        }}>
-          {/* Display range: e.g. "10 out of 100", "20 out of 100" */}
-          <div style={{ fontSize: '12px', fontWeight: '600', color: '#475569' }}>
-            Showing <span style={{ color: '#2563eb', fontWeight: '700' }}>{rangeDisplay}</span> alerts
-          </div>
-
-          {/* Page Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={validCurrentPage <= 1}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '5px 10px',
-                borderRadius: '6px',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#ffffff',
-                color: validCurrentPage <= 1 ? '#94a3b8' : '#334155',
-                fontSize: '11px',
-                fontWeight: '600',
-                cursor: validCurrentPage <= 1 ? 'not-allowed' : 'pointer'
-              }}
-            >
-              <ChevronLeft style={{ width: '14px', height: '14px' }} />
-              Previous
-            </button>
-
-            <span style={{ fontSize: '12px', fontWeight: '600', color: '#64748b', padding: '0 8px' }}>
-              Page {validCurrentPage} of {totalPages}
-            </span>
-
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={validCurrentPage >= totalPages}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '5px 10px',
-                borderRadius: '6px',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#ffffff',
-                color: validCurrentPage >= totalPages ? '#94a3b8' : '#334155',
-                fontSize: '11px',
-                fontWeight: '600',
-                cursor: validCurrentPage >= totalPages ? 'not-allowed' : 'pointer'
-              }}
-            >
-              Next
-              <ChevronRight style={{ width: '14px', height: '14px' }} />
-            </button>
-          </div>
-        </div>
+        <AlertsPagination
+          rangeDisplay={rangeDisplay}
+          currentPage={validCurrentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
 
         {/* Footer info notice */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '11px', color: '#64748b' }}>

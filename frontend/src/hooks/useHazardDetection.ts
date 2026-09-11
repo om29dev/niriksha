@@ -50,7 +50,15 @@ export function useHazardDetection(
     return pkt && pkt.water_depth !== null && pkt.water_depth !== undefined && pkt.water_depth > 100.0;
   });
 
-  // 3. High Temperature Hazard: Temp > 45°C
+  // 3. High Temperature Hazards:
+  // Fire Outbreak / Extreme Thermal Hazard (>= 60°C)
+  const fireHazardPoles = ([1, 2, 3] as const).filter((id) => {
+    const pkt = id === 1 ? latestPole1 : id === 2 ? latestPole2 : latestPole3;
+    return pkt && pkt.temperature !== null && pkt.temperature !== undefined && pkt.temperature >= 60.0;
+  });
+  const isFireEmergency = fireHazardPoles.length > 0;
+
+  // Standard Thermal Warning (> 45°C)
   const tempHazardPoles = ([1, 2, 3] as const).filter((id) => {
     const pkt = id === 1 ? latestPole1 : id === 2 ? latestPole2 : latestPole3;
     return pkt && pkt.temperature !== null && pkt.temperature !== undefined && pkt.temperature > 45.0;
@@ -95,6 +103,8 @@ export function useHazardDetection(
     isVoltageEmergency,
     floodHazardPoles,
     tempHazardPoles,
+    fireHazardPoles,
+    isFireEmergency,
     humidityHazardPoles,
     mq7HazardPoles,
     mq135HazardPoles,

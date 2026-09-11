@@ -81,16 +81,23 @@ class MockSimulator:
         return round(15.0 + 5.0 * math.sin(current_time * 0.1) + random.uniform(-0.5, 0.5), 1)
 
     def _check_temperature(self, current_time: float) -> float:
-        """Normally 26-30°C, occasionally overheats (>45°C)."""
+        """
+        Normally 26-30°C.
+        Simulates two hazard levels:
+        - Thermal warning: 46-52°C
+        - Extreme Fire/Blaze Emergency: spikes to 85°C - 165°C for 14-20s, simulating active fire outbreak.
+        """
         if 3 in self.high_temp_events:
             if current_time < self.high_temp_events[3]:
-                return round(48.5 + random.uniform(-1.0, 4.0), 1)
+                # Active fire or severe overheating event
+                return round(110.0 + random.uniform(-15.0, 35.0), 1)
             else:
                 del self.high_temp_events[3]
 
-        if random.random() < 0.025 and not self.high_temp_events:
-            self.high_temp_events[3] = current_time + random.uniform(12.0, 18.0)
-            return round(48.5 + random.uniform(-1.0, 4.0), 1)
+        # Trigger occasional extreme fire / high temperature hazard (~3.5% chance), lasts 14-20s
+        if random.random() < 0.035 and not self.high_temp_events:
+            self.high_temp_events[3] = current_time + random.uniform(14.0, 20.0)
+            return round(110.0 + random.uniform(-15.0, 35.0), 1)
 
         return round(28.0 + 2.5 * math.sin(current_time * 0.05) + random.uniform(-0.3, 0.3), 1)
 

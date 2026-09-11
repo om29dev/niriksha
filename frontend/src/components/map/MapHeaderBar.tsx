@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Radio, Layers, Compass, Maximize2, Minimize2 } from 'lucide-react';
+import { Radio, Layers, Compass, Maximize2, Minimize2 } from 'lucide-react';
 import type { PoleId, PoleState } from '../../types/telemetry';
 import { PoleSelectDropdown } from '../PoleSelectDropdown';
 import { DEFAULT_POLES } from '../../constants/polesCatalog';
@@ -37,7 +37,7 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
         backgroundColor: '#ffffff',
         border: '1px solid #e2e8f0',
         borderRadius: '8px',
-        padding: '18px 24px',
+        padding: '12px 18px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -45,31 +45,26 @@ export const MapHeaderBar: React.FC<MapHeaderBarProps> = ({
         gap: '12px'
       }}
     >
+      {/* Left: Focused Node Selector */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <MapPin style={{ width: '20px', height: '20px', color: '#2563eb' }} />
-          <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a' }}>
-            Live Spatial Sensor Topology & Mesh Map
-          </h2>
-        </div>
-        <p style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-          Real-time top-down schematic of field sensor nodes, RF wireless links, and coverage radii (100% offline).
-        </p>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-        {selectedPoleId && onSelectPoleId && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        {selectedPoleId && onSelectPoleId ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '700', color: '#1e293b' }}>
+              Inspect Node:
+            </span>
             <PoleSelectDropdown
               poles={DEFAULT_POLES}
               selectedPoleId={selectedPoleId}
               onSelectPole={onSelectPoleId}
               poleStateMap={poleStateMap}
-              width="210px"
+              width="220px"
               size="sm"
             />
           </div>
-        )}
+        ) : <div />}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
 
         <button
           onClick={onToggleMeshLinks}

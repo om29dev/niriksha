@@ -4,6 +4,93 @@ An offline-first, laboratory-grade IoT telemetry, mesh sensor network, and real-
 
 ---
 
+## 🚀 Quick Setup & Run Guide
+
+Follow these steps to get the entire system up and running in under 2 minutes.
+
+### 1. Prerequisites
+- **Python 3.10+**
+- **Node.js 18+ & npm**
+- **PostgreSQL 14+** (running locally or accessible via network)
+- **PowerShell 5.1+** (Windows standard)
+
+---
+
+### 2. Configure Environment
+Copy `.env.example` in `backend/` to `backend/.env` and update your PostgreSQL credentials:
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=iot_dashboard
+DB_MIN_POOL_SIZE=2
+DB_MAX_POOL_SIZE=10
+BATCH_FLUSH_INTERVAL_MS=300
+BATCH_BUFFER_MAX_SIZE=50
+SERVER_HOST=127.0.0.1
+SERVER_PORT=8000
+```
+
+---
+
+### 3. Install Dependencies & Initialize DB
+
+```powershell
+# 1. Install Backend Dependencies
+pip install -r backend/requirements.txt
+
+# 2. Initialize PostgreSQL Schema & Tables
+python backend/init_postgres.py
+
+# 3. Install Frontend Dependencies
+cd frontend
+npm install
+cd ..
+```
+
+---
+
+### 4. Run the Project
+
+You can start both backend and frontend together with a single command using the built-in management script:
+
+```powershell
+# Option A: Start both services in the background
+.\manage.ps1 start
+
+# Option B: Run in interactive debug mode with live unified log streaming
+.\manage.ps1 debug
+```
+
+> **Direct / Manual Launch (Alternative):**
+> - **Backend:** `uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload`
+> - **Frontend:** `cd frontend && npm run dev`
+
+---
+
+### 5. Access the Platform
+
+- **Web Dashboard:** [http://localhost:5173](http://localhost:5173)
+- **FastAPI API & Health:** [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- **Interactive Swagger API Docs:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+---
+
+## 🕹️ CLI Management Commands (`manage.ps1`)
+
+| Command | Action |
+| :--- | :--- |
+| `.\manage.ps1 start` | Starts backend (port 8000) and frontend (port 5173) in background jobs |
+| `.\manage.ps1 debug` | Runs unified debug stream in active console with `[BACKEND]` and `[FRONTEND]` tags |
+| `.\manage.ps1 stop` | Gracefully terminates both background processes |
+| `.\manage.ps1 restart` | Restarts backend and frontend services |
+| `.\manage.ps1 status` | Checks process status and port listeners |
+| `.\manage.ps1 logs` | Tails live backend log file (`Get-Content logs/backend.log -Wait`) |
+| `.\manage.ps1 help` | Displays available management commands |
+
+---
+
 ## 🌟 Key Highlights & Capabilities
 
 - **Strict Offline / Air-Gapped Operation:** Zero external CDNs or cloud dependencies. Offline typography (`@fontsource/inter`) and iconography (`lucide-react`) bundled statically.
@@ -80,64 +167,6 @@ SIH/
 ├── logs/                               # Runtime logs directory (backend.log, frontend.log)
 ├── manage.ps1                          # Unified PowerShell service management CLI
 └── AGENTS.md                           # Strict system rules & operational directives
-```
-
----
-
-## ⚡ Quick Start
-
-### 1. Prerequisites
-- **Python 3.10+**
-- **Node.js 18+ & npm**
-- **PostgreSQL 14+** (running locally or accessible via network)
-- **PowerShell 5.1+** (Windows standard)
-
-### 2. Configure Environment
-Copy `.env.example` to `backend/.env` and update credentials:
-```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=iot_dashboard
-DB_MIN_POOL_SIZE=2
-DB_MAX_POOL_SIZE=10
-BATCH_FLUSH_INTERVAL_MS=300
-BATCH_BUFFER_MAX_SIZE=50
-SERVER_HOST=127.0.0.1
-SERVER_PORT=8000
-```
-
-### 3. Initialize Database
-Initialize the schema and indexes:
-```powershell
-python backend/init_postgres.py
-```
-
-### 4. Install Dependencies
-```powershell
-# Install Backend Dependencies
-pip install -r backend/requirements.txt
-
-# Install Frontend Dependencies
-cd frontend
-npm install
-cd ..
-```
-
-### 5. Launch Services
-Use the unified management CLI to run both services:
-```powershell
-# Background service execution
-.\manage.ps1 start
-
-# Or launch with combined real-time colored log streaming in current window
-.\manage.ps1 debug
-```
-
-- **Frontend UI:** [http://localhost:5173](http://localhost:5173)
-- **FastAPI Backend:** [http://127.0.0.1:8000](http://127.0.0.1:8000)
-- **Interactive Swagger Docs:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
 ---
 

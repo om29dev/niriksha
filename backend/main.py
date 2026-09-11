@@ -74,20 +74,33 @@ async def evaluate_and_record_alerts(packet: Dict[str, Any]):
             if new_alert:
                 await ws_manager.broadcast({"type": "NEW_ALERT", "alert": new_alert})
 
-        # 4. Temperature Hazard (> 45°C)
+        # 4. Temperature Hazard: Thermal Warning (> 45°C) or Extreme Fire Outbreak (> 60°C)
         temp = packet.get("temperature")
-        if temp is not None and temp > 45.0:
-            new_alert = await record_alert_if_new(
-                pole_id=pole_id,
-                alert_type="high_temperature",
-                severity="warning",
-                title=f"Excessive Heat Hazard ({temp:.1f}°C)",
-                description="Ambient temperature breached the 45.0°C thermal threshold.",
-                trigger_value=float(temp),
-                unit="°C"
-            )
-            if new_alert:
-                await ws_manager.broadcast({"type": "NEW_ALERT", "alert": new_alert})
+        if temp is not None:
+            if temp >= 60.0:
+                new_alert = await record_alert_if_new(
+                    pole_id=pole_id,
+                    alert_type="fire_emergency",
+                    severity="critical",
+                    title=f"Extreme Fire / Thermal Emergency ({temp:.1f}°C)",
+                    description="Severe blaze temperature spike detected. Immediate fire department dispatch required.",
+                    trigger_value=float(temp),
+                    unit="°C"
+                )
+                if new_alert:
+                    await ws_manager.broadcast({"type": "NEW_ALERT", "alert": new_alert})
+            elif temp > 45.0:
+                new_alert = await record_alert_if_new(
+                    pole_id=pole_id,
+                    alert_type="high_temperature",
+                    severity="warning",
+                    title=f"Excessive Heat Hazard ({temp:.1f}°C)",
+                    description="Ambient temperature breached the 45.0°C thermal threshold.",
+                    trigger_value=float(temp),
+                    unit="°C"
+                )
+                if new_alert:
+                    await ws_manager.broadcast({"type": "NEW_ALERT", "alert": new_alert})
 
         # 5. Humidity Hazard (> 85%)
         hum = packet.get("humidity")

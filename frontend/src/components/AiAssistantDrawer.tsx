@@ -8,6 +8,7 @@ import {
   Plus
 } from 'lucide-react';
 import type { PoleId, TelemetryPacket, PersistentAlert, PoleState } from '../types/telemetry';
+import { MarkdownContent } from './MarkdownContent';
 
 interface AiAssistantDrawerProps {
   isOpen: boolean;
@@ -150,6 +151,37 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
       }
     }
   }, [sessions, activeSessionId]);
+
+  // Dynamically fetch AI welcome greeting for fresh session
+  useEffect(() => {
+    const fetchAiWelcome = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/ai/welcome');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.message) {
+            setSessions(prev =>
+              prev.map(s => {
+                if (s.messages.length === 1 && s.messages[0].id === 'welcome') {
+                  return {
+                    ...s,
+                    messages: [{
+                      ...s.messages[0],
+                      content: data.message
+                    }]
+                  };
+                }
+                return s;
+              })
+            );
+          }
+        }
+      } catch {
+        // Fallback welcome message already present
+      }
+    };
+    fetchAiWelcome();
+  }, []);
 
   // Save sessions to localStorage
   const persistSessions = (updatedSessions: ChatSession[]) => {
@@ -311,7 +343,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
           backgroundColor: '#f8fafc'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
           <div
             style={{
               width: '32px',
@@ -322,29 +354,30 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#2563eb'
+              color: '#2563eb',
+              flexShrink: 0
             }}
           >
             <Sparkles style={{ width: '18px', height: '18px' }} />
           </div>
-          <div>
+          <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#0f172a', margin: 0 }}>
-                NIRIKSHA Sensor AI Assistant
+              <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', margin: 0, whiteSpace: 'nowrap' }}>
+                AI Assistant
               </h3>
               {unresolvedCount > 0 && (
-                <span style={{ fontSize: '10px', fontWeight: '700', color: '#dc2626', backgroundColor: '#fee2e2', padding: '1px 6px', borderRadius: '4px' }}>
+                <span style={{ fontSize: '10px', fontWeight: '700', color: '#dc2626', backgroundColor: '#fee2e2', padding: '1px 5px', borderRadius: '4px', whiteSpace: 'nowrap' }}>
                   {unresolvedCount} Alerts
                 </span>
               )}
             </div>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>
-              Full Live Telemetry Access & Diagnostic Engine
-            </span>
+            <div style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              Live Telemetry & Diagnostics
+            </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
           <button
             onClick={handleCreateNewChat}
             style={{
@@ -352,7 +385,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
               background: '#ffffff',
               color: '#334155',
               cursor: 'pointer',
-              padding: '5px 8px',
+              padding: '4px 8px',
               borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
@@ -380,7 +413,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                 background: '#eff6ff',
                 color: '#2563eb',
                 cursor: 'pointer',
-                padding: '5px 9px',
+                padding: '4px 8px',
                 borderRadius: '6px',
                 display: 'flex',
                 alignItems: 'center',
@@ -400,7 +433,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
               title="Open full AI Diagnostic View"
             >
               <Maximize2 style={{ width: '12px', height: '12px' }} />
-              <span>Full View</span>
+              <span>Full</span>
             </button>
           )}
 
@@ -411,7 +444,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
               background: 'transparent',
               color: '#64748b',
               cursor: 'pointer',
-              padding: '5px',
+              padding: '4px',
               borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
@@ -470,8 +503,10 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                   whiteSpace: 'pre-line'
                 }}
               >
-                <div>{m.content}</div>
-                <div style={{ fontSize: '9px', color: isUser ? '#bfdbfe' : '#94a3b8', marginTop: '4px', textAlign: 'right' }}>
+                <div style={{ fontSize: '12px' }}>
+                  <MarkdownContent content={m.content} isUser={isUser} />
+                </div>
+                <div style={{ fontSize: '9px', color: isUser ? '#bfdbfe' : '#94a3b8', marginTop: '6px', textAlign: 'right' }}>
                   {m.timestamp}
                 </div>
               </div>

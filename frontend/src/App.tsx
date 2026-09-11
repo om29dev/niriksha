@@ -8,6 +8,7 @@ import { Sidebar, type ActiveView } from './components/Sidebar';
 import { Header } from './components/Header';
 import { CustomizableDashboard } from './components/dashboard/CustomizableDashboard';
 import { VoltageEmergencyModal } from './components/VoltageEmergencyModal';
+import { FireEmergencyModal } from './components/FireEmergencyModal';
 import { SettingsView } from './components/views/SettingsView';
 import { FleetNodesView } from './components/views/FleetNodesView';
 import { AlertsHistoryView } from './components/views/AlertsHistoryView';
@@ -50,8 +51,9 @@ export default function App() {
     }
   };
 
-  // High Voltage Emergency Modal & Sound Alert State
+  // High Voltage & Fire Emergency Modal & Sound Alert State
   const [voltageAlertDismissed, setVoltageAlertDismissed] = useState<boolean>(false);
+  const [fireAlertDismissed, setFireAlertDismissed] = useState<boolean>(false);
   const [audioMuted, setAudioMuted] = useState<boolean>(false);
 
   // Persistent PostgreSQL alerts hook
@@ -92,6 +94,8 @@ export default function App() {
     isVoltageEmergency,
     floodHazardPoles,
     tempHazardPoles,
+    fireHazardPoles,
+    isFireEmergency,
     humidityHazardPoles,
     mq7HazardPoles,
     mq135HazardPoles,
@@ -102,9 +106,13 @@ export default function App() {
   // Synthesized emergency audio hook
   const { startAlarm, stopAlarm } = useEmergencyAudio(audioMuted);
 
-  // Sound loop trigger whenever a voltage emergency is active and not dismissed
+  // Sound loop trigger whenever a voltage emergency OR fire emergency is active and not dismissed
+  const isEmergencySoundActive =
+    (isVoltageEmergency && !voltageAlertDismissed) ||
+    (isFireEmergency && !fireAlertDismissed);
+
   useEffect(() => {
-    if (isVoltageEmergency && !voltageAlertDismissed && !audioMuted) {
+    if (isEmergencySoundActive && !audioMuted) {
       startAlarm();
     } else {
       stopAlarm();
@@ -112,7 +120,7 @@ export default function App() {
     return () => {
       stopAlarm();
     };
-  }, [isVoltageEmergency, voltageAlertDismissed, audioMuted, startAlarm, stopAlarm]);
+  }, [isEmergencySoundActive, audioMuted, startAlarm, stopAlarm]);
 
   // Reset dismissed state once voltage returns to safe (<5V)
   useEffect(() => {
@@ -120,6 +128,13 @@ export default function App() {
       setVoltageAlertDismissed(false);
     }
   }, [isVoltageEmergency]);
+
+  // Reset dismissed state once fire returns to safe (<60°C)
+  useEffect(() => {
+    if (!isFireEmergency) {
+      setFireAlertDismissed(false);
+    }
+  }, [isFireEmergency]);
 
   // Fetch data for a selected historical time range (1h, 6h, 24h)
   const handleTimeRangeChange = async (range: TimeRangeOption) => {
@@ -193,6 +208,24 @@ export default function App() {
             activeView={activeView}
             downPoles={downPoles}
             offlinePoles={offlinePoles}
+            liveHazardsCount={
+              (isVoltageEmergency ? 1 : 0) +
+              downPoles.length +
+              floodHazardPoles.length +
+              tempHazardPoles.length +
+              humidityHazardPoles.length +
+              mq7HazardPoles.length +
+              mq135HazardPoles.length +
+              mq136HazardPoles.length +
+              mq2HazardPoles.length +
+              offlinePoles.length
+            }
+            isVoltageEmergency={isVoltageEmergency}
+            isFireEmergency={isFireEmergency}
+            fireHazardPoles={fireHazardPoles}
+            floodHazardPoles={floodHazardPoles}
+            tempHazardPoles={tempHazardPoles}
+            gasHazardPoles={Array.from(new Set([...mq7HazardPoles, ...mq135HazardPoles, ...mq136HazardPoles, ...mq2HazardPoles]))}
             wsConnected={wsConnected}
             useSimulation={useSimulation}
             selectedPort={selectedPort}
@@ -349,6 +382,27 @@ export default function App() {
           setActivePoleTab(poleId as PoleId);
           setActiveView('map');
           setVoltageAlertDismissed(true);
+          stopAlarm();
+        }}
+      />
+
+      {/* Critical Fire & Extreme Temperature Emergency Modal & Siren Tone Dialog */}
+      <FireEmergencyModal
+        isFireEmergency={isFireEmergency}
+        fireAlertDismissed={fireAlertDismissed}
+        onDismiss={() => {
+          setFireAlertDismissed(true);
+          stopAlarm();
+        }}
+        audioMuted={audioMuted}
+        onToggleMute={() => setAudioMuted(!audioMuted)}
+        latestPole1={latestPole1}
+        latestPole2={latestPole2}
+        latestPole3={latestPole3}
+        onNavigateToLocation={(poleId) => {
+          setActivePoleTab(poleId as PoleId);
+          setActiveView('map');
+          setFireAlertDismissed(true);
           stopAlarm();
         }}
       />

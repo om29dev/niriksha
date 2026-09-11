@@ -38,7 +38,7 @@
 
 7. **Skill Consultation & Adherence (Mandatory)**
    - Always check the available skills (`.agents/skills/` and registered skills) before planning, implementing, or modifying features.
-   - If a task touches an area covered by a skill (e.g., `fastapi-iot-backend`, `postgres-asyncpg-iot`, `pyserial-iot-telemetry`, `react-iot-dashboard`, `offline-iot-dashboard`, `ai-telemetry-assistant`, `spatial-map-reporting`), you MUST inspect and consult the relevant `SKILL.md` before executing changes.
+   - If a task touches an area covered by a skill (e.g., `fastapi-iot-backend`, `postgres-asyncpg-iot`, `pyserial-iot-telemetry`, `react-iot-dashboard`, `offline-iot-dashboard`, `ai-telemetry-assistant`, `ollama-ai-engine`, `spatial-map-reporting`), you MUST inspect and consult the relevant `SKILL.md` before executing changes.
 
 8. **Modular File Architecture & Scalability Standard**
    - Favor clean, focused, modular files under 100 lines wherever feasible.

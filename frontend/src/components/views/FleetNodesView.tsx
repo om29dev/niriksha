@@ -103,26 +103,18 @@ export const FleetNodesView: React.FC<FleetNodesViewProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Overview Header Banner */}
+      {/* Filter & Search Toolbar */}
       <div style={{
         backgroundColor: '#ffffff',
         border: '1px solid #e2e8f0',
         borderRadius: '8px',
-        padding: '18px 24px',
+        padding: '12px 18px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: '12px'
       }}>
-        <div>
-          <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a' }}>
-            Mesh Fleet Node Architecture & Real-Time Telemetry
-          </h2>
-          <p style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-            Live readings, hardware status, and sensor suite across all three air-gapped field poles.
-          </p>
-        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {/* Search Box */}
           <div style={{
@@ -133,7 +125,7 @@ export const FleetNodesView: React.FC<FleetNodesViewProps> = ({
             border: '1px solid #cbd5e1',
             borderRadius: '6px',
             padding: '6px 12px',
-            width: '240px'
+            width: '260px'
           }}>
             <Search style={{ width: '15px', height: '15px', color: '#94a3b8' }} />
             <input
@@ -173,22 +165,22 @@ export const FleetNodesView: React.FC<FleetNodesViewProps> = ({
               <option value="offline">Offline Only</option>
             </select>
           </div>
+        </div>
 
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '6px 14px',
-            borderRadius: '6px',
-            backgroundColor: '#eff6ff',
-            color: '#1d4ed8',
-            border: '1px solid #bfdbfe',
-            fontSize: '12px',
-            fontWeight: '600'
-          }}>
-            <Layers style={{ width: '15px', height: '15px' }} />
-            {filteredPoles.length} / {allPoles.length} Nodes
-          </div>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '6px 14px',
+          borderRadius: '6px',
+          backgroundColor: '#eff6ff',
+          color: '#1d4ed8',
+          border: '1px solid #bfdbfe',
+          fontSize: '12px',
+          fontWeight: '600'
+        }}>
+          <Layers style={{ width: '15px', height: '15px' }} />
+          {filteredPoles.length} / {allPoles.length} Nodes
         </div>
       </div>
 
