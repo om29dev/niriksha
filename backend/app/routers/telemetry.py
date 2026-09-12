@@ -8,6 +8,7 @@ from fastapi.responses import PlainTextResponse
 from database import (
     get_recent_telemetry,
     clear_telemetry,
+    clear_all_alerts,
     get_db_config,
     reconnect_db,
     get_telemetry_history,
@@ -47,12 +48,13 @@ def create_telemetry_router(serial_mgr):
 
     @router.post("/reset")
     async def reset_telemetry():
-        """Wipes PostgreSQL telemetry data and clears memory buffers."""
+        """Wipes PostgreSQL telemetry data, alerts, and clears memory buffers."""
         await clear_telemetry()
+        await clear_all_alerts()
         serial_mgr.seq = 1
         # Broadcast reset event over active websockets
         await ws_manager.broadcast({"type": "TELEMETRY_RESET"})
-        return {"status": "success", "message": "Telemetry database and streaming state reset successfully."}
+        return {"status": "success", "message": "Telemetry and alerts database tables reset successfully."}
 
     @router.get("/recent")
     async def get_recent(

@@ -37,7 +37,7 @@ export function useWebSocketTelemetry(onWsMessage?: (data: any) => void) {
     }
   }, [selectedPort]);
 
-  // Hydrate recent entries from database on mount
+  // Hydrate recent entries from database on mount (only treat recent entries as live state)
   const hydrateRecent = useCallback(async () => {
     try {
       const res = await fetch('http://127.0.0.1:8000/api/telemetry/recent?limit=100');
@@ -46,12 +46,20 @@ export function useWebSocketTelemetry(onWsMessage?: (data: any) => void) {
         historyRef.current = json.data;
         setTelemetryHistory(json.data);
 
+        const now = Date.now() / 1000;
         json.data.forEach((pkt: TelemetryPacket) => {
-          if (pkt.pole_id === 1) setLatestPole1(pkt);
-          else if (pkt.pole_id === 2) setLatestPole2(pkt);
-          else if (pkt.pole_id === 3) setLatestPole3(pkt);
+          // Only hydrate as active latest if packet is recent (< 30 seconds old)
+          const age = now - (pkt.timestamp || 0);
+          if (age < 30) {
+            if (pkt.pole_id === 1) setLatestPole1(pkt);
+            else if (pkt.pole_id === 2) setLatestPole2(pkt);
+            else if (pkt.pole_id === 3) setLatestPole3(pkt);
+          }
         });
-        setLatestAny(json.data[json.data.length - 1]);
+        const lastPkt = json.data[json.data.length - 1];
+        if (now - (lastPkt.timestamp || 0) < 30) {
+          setLatestAny(lastPkt);
+        }
       }
     } catch (err) {
       console.warn('Could not fetch historical telemetry', err);

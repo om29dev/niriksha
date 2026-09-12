@@ -36,23 +36,26 @@ export function useHazardDetection(
   const downPoles = ([1, 2, 3] as const).filter((id) => poleStateMap[id].isDown);
   const offlinePoles = ([1, 2, 3] as const).filter((id) => poleStateMap[id].isOffline);
 
-  // 1. Water Voltage Leak: Two probes in water measure voltage > 5.0V (Electrification Hazard)
+  // 1. Water Voltage Leak: Two probes in water measure voltage > 5.0V (Electrification Hazard on active poles)
   const voltageHazardPoles = ([1, 2, 3] as const).filter((id) => {
+    if (poleStateMap[id].isOffline) return false;
     const pkt = id === 1 ? latestPole1 : id === 2 ? latestPole2 : latestPole3;
     return pkt && pkt.voltage !== null && pkt.voltage !== undefined && pkt.voltage > 5.0;
   });
 
   const isVoltageEmergency = voltageHazardPoles.length > 0;
 
-  // 2. Flood Hazard: Water Depth > 100cm
+  // 2. Flood Hazard: Water Depth > 100cm (on active poles)
   const floodHazardPoles = ([1, 2, 3] as const).filter((id) => {
+    if (poleStateMap[id].isOffline) return false;
     const pkt = id === 1 ? latestPole1 : id === 2 ? latestPole2 : latestPole3;
     return pkt && pkt.water_depth !== null && pkt.water_depth !== undefined && pkt.water_depth > 100.0;
   });
 
-  // 3. High Temperature Hazards:
+  // 3. High Temperature Hazards (on active poles):
   // Fire Outbreak / Extreme Thermal Hazard (>= 60°C)
   const fireHazardPoles = ([1, 2, 3] as const).filter((id) => {
+    if (poleStateMap[id].isOffline) return false;
     const pkt = id === 1 ? latestPole1 : id === 2 ? latestPole2 : latestPole3;
     return pkt && pkt.temperature !== null && pkt.temperature !== undefined && pkt.temperature >= 60.0;
   });
@@ -60,31 +63,36 @@ export function useHazardDetection(
 
   // Standard Thermal Warning (> temp threshold, default 45°C)
   const tempHazardPoles = ([1, 2, 3] as const).filter((id) => {
+    if (poleStateMap[id].isOffline) return false;
     const pkt = id === 1 ? latestPole1 : id === 2 ? latestPole2 : latestPole3;
     return pkt && pkt.temperature !== null && pkt.temperature !== undefined && pkt.temperature > gasThresholds.temp;
   });
 
   // 4. High Humidity Hazard: Humidity > humidity threshold (default 85%)
   const humidityHazardPoles = ([1, 2, 3] as const).filter((id) => {
+    if (poleStateMap[id].isOffline) return false;
     const pkt = id === 1 ? latestPole1 : id === 2 ? latestPole2 : latestPole3;
     return pkt && pkt.humidity !== null && pkt.humidity !== undefined && pkt.humidity > gasThresholds.humidity;
   });
 
-  // 5. Toxic Gas Hazards with distinct thresholds for each gas
+  // 5. Toxic Gas Hazards with distinct thresholds for each gas (on active poles)
   // MQ-7: Carbon Monoxide (> 50 ppm default)
   const mq7HazardPoles = ([1, 2, 3] as const).filter((id) => {
+    if (poleStateMap[id].isOffline) return false;
     const pkt = id === 1 ? latestPole1 : id === 2 ? latestPole2 : latestPole3;
     return pkt && pkt.mq7 !== null && pkt.mq7 !== undefined && pkt.mq7 > gasThresholds.mq7;
   });
 
   // MQ-135: Air Quality / Pollutants (> 150 ppm default)
   const mq135HazardPoles = ([1, 2, 3] as const).filter((id) => {
+    if (poleStateMap[id].isOffline) return false;
     const pkt = id === 1 ? latestPole1 : id === 2 ? latestPole2 : latestPole3;
     return pkt && pkt.mq135 !== null && pkt.mq135 !== undefined && pkt.mq135 > gasThresholds.mq135;
   });
 
   // MQ-136: Sewage Gas / H2S (> 15 ppm default)
   const mq136HazardPoles = ([1, 2, 3] as const).filter((id) => {
+    if (poleStateMap[id].isOffline) return false;
     const pkt = id === 1 ? latestPole1 : id === 2 ? latestPole2 : latestPole3;
     return pkt && pkt.mq136 !== null && pkt.mq136 !== undefined && pkt.mq136 > gasThresholds.mq136;
   });

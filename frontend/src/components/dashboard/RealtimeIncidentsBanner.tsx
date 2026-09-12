@@ -49,15 +49,18 @@ export const RealtimeIncidentsBanner: React.FC<RealtimeIncidentsBannerProps> = (
       const pkt = allPackets[id];
       const st = poleStateMap[id];
 
-      if (st?.isOffline) offlinePoles.push(id);
-      if (st?.isDown || pkt?.is_upright === false) downPoles.push(id);
-      if ((pkt?.voltage ?? 0) > 5.0) voltagePoles.push(id);
-      if ((pkt?.water_depth ?? 0) > 100) floodPoles.push(id);
-      if ((pkt?.temperature ?? 0) > gasThresholds.temp) tempPoles.push(id);
-      if ((pkt?.humidity ?? 0) > gasThresholds.humidity) humPoles.push(id);
-      if ((pkt?.mq7 ?? 0) > gasThresholds.mq7) mq7Poles.push(id);
-      if ((pkt?.mq135 ?? 0) > gasThresholds.mq135) mq135Poles.push(id);
-      if ((pkt?.mq136 ?? 0) > gasThresholds.mq136) mq136Poles.push(id);
+      if (st?.isOffline) {
+        offlinePoles.push(id);
+      } else {
+        if (st?.isDown || pkt?.is_upright === false) downPoles.push(id);
+        if ((pkt?.voltage ?? 0) > 5.0) voltagePoles.push(id);
+        if ((pkt?.water_depth ?? 0) > 100) floodPoles.push(id);
+        if ((pkt?.temperature ?? 0) > gasThresholds.temp) tempPoles.push(id);
+        if ((pkt?.humidity ?? 0) > gasThresholds.humidity) humPoles.push(id);
+        if ((pkt?.mq7 ?? 0) > gasThresholds.mq7) mq7Poles.push(id);
+        if ((pkt?.mq135 ?? 0) > gasThresholds.mq135) mq135Poles.push(id);
+        if ((pkt?.mq136 ?? 0) > gasThresholds.mq136) mq136Poles.push(id);
+      }
     });
 
     return [
