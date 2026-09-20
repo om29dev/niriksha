@@ -7,7 +7,7 @@ export interface TelemetrySourceCardProps {
   ports: PortInfo[];
   activeInputMode: 'serial' | 'mqtt';
   setActiveInputMode: (mode: 'serial' | 'mqtt') => void;
-  onConfigUpdate: (simMode: boolean, portName: string) => void;
+  onConfigUpdate: (portName: string) => void;
   onScanPorts: () => void;
   baudRate: string;
   setBaudRate: (rate: string) => void;
@@ -85,7 +85,7 @@ export const TelemetrySourceCard: React.FC<TelemetrySourceCardProps> = ({
               onClick={() => {
                 setActiveInputMode('serial');
                 const targetPort = selectedPort || (ports.length > 0 ? ports[0].device : '');
-                onConfigUpdate(false, targetPort);
+                onConfigUpdate(targetPort);
               }}
               style={{
                 padding: '8px 10px',
@@ -292,7 +292,7 @@ export const TelemetrySourceCard: React.FC<TelemetrySourceCardProps> = ({
               </div>
               <select
                 value={selectedPort}
-                onChange={(e) => onConfigUpdate(false, e.target.value)}
+                onChange={(e) => onConfigUpdate(e.target.value)}
                 style={{
                   width: '100%',
                   padding: '8px 12px',

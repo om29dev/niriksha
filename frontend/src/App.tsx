@@ -78,7 +78,8 @@ export default function App() {
     latestAny,
     ports,
     selectedPort,
-    useSimulation,
+    serialConnected,
+    mqttConnected,
     wsConnected,
     packetRate,
     scanPorts,
@@ -226,7 +227,6 @@ export default function App() {
         downPoles={downPoles}
         offlinePoles={offlinePoles}
         wsConnected={wsConnected}
-        useSimulation={useSimulation}
         selectedPort={selectedPort}
         packetRate={packetRate}
         unresolvedAlertsCount={unresolvedCount}
@@ -260,7 +260,8 @@ export default function App() {
             tempHazardPoles={tempHazardPoles}
             gasHazardPoles={Array.from(new Set([...mq7HazardPoles, ...mq135HazardPoles, ...mq136HazardPoles]))}
             wsConnected={wsConnected}
-            useSimulation={useSimulation}
+            serialConnected={serialConnected}
+            mqttConnected={mqttConnected}
             selectedPort={selectedPort}
             packetRate={packetRate}
             unresolvedAlertsCount={unresolvedCount}

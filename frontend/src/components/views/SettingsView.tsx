@@ -11,7 +11,7 @@ import { DatabaseMaintenanceCard } from '../settings/DatabaseMaintenanceCard';
 interface SettingsViewProps {
   selectedPort: string;
   ports: PortInfo[];
-  onConfigUpdate: (simMode: boolean, portName: string) => void;
+  onConfigUpdate: (portName: string) => void;
   onScanPorts: () => void;
   onResetData: () => void;
   audioMuted?: boolean;
@@ -65,18 +65,33 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [mqttStatusMsg, setMqttStatusMsg] = useState<{ text: string; isError: boolean } | null>(null);
   const [isConnectingMqtt, setIsConnectingMqtt] = useState<boolean>(false);
 
-  const handleSaveMqtt = (e: React.FormEvent) => {
+  const handleSaveMqtt = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsConnectingMqtt(true);
     setMqttStatusMsg(null);
-    setTimeout(() => {
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/mqtt/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          host: mqttHost.trim(),
+          port: Number(mqttPort),
+          topic: mqttTopic.trim(),
+          username: mqttUser.trim() || null,
+          password: mqttPassword.trim() || null
+        })
+      });
+      const data = await res.json();
+      setMqttStatusMsg({ text: data.message || `Connected to MQTT Broker [${mqttHost}:${mqttPort}]`, isError: false });
+    } catch (err) {
+      setMqttStatusMsg({ text: 'Failed to configure MQTT broker', isError: true });
+    } finally {
       setIsConnectingMqtt(false);
-      setMqttStatusMsg({ text: `Connected to MQTT Broker [${mqttHost}:${mqttPort}]`, isError: false });
       setTimeout(() => setMqttStatusMsg(null), 4000);
-    }, 800);
+    }
   };
 
-  // Fetch initial db configuration and Ollama configuration from backend
+  // Fetch initial db configuration, Ollama, and MQTT configuration from backend
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/telemetry/db-config')
       .then((res) => res.json())
@@ -85,6 +100,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         if (cfg.port) setDbPort(cfg.port);
         if (cfg.user) setDbUser(cfg.user);
         if (cfg.database) setDbName(cfg.database);
+      })
+      .catch(() => {});
+
+    fetch('http://127.0.0.1:8000/api/mqtt')
+      .then((res) => res.json())
+      .then((cfg) => {
+        if (cfg.host) setMqttHost(cfg.host);
+        if (cfg.port) setMqttPort(cfg.port);
+        if (cfg.topic) setMqttTopic(cfg.topic);
       })
       .catch(() => {});
 

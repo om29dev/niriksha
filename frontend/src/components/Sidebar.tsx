@@ -27,7 +27,6 @@ interface SidebarProps {
   downPoles: PoleId[];
   offlinePoles: PoleId[];
   wsConnected: boolean;
-  useSimulation: boolean;
   selectedPort: string;
   packetRate: number;
   unresolvedAlertsCount?: number;

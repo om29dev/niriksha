@@ -1,10 +1,8 @@
-"""
-WebSocket Endpoints for Real-Time Streaming Telemetry.
-"""
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.connection_manager import ws_manager
 
-def create_ws_router(serial_mgr):
+
+def create_ws_router(serial_mgr, mqtt_mgr):
     router = APIRouter(tags=["websockets"])
 
     @router.websocket("/ws")
@@ -13,17 +11,19 @@ def create_ws_router(serial_mgr):
 
         await websocket.send_json({
             "type": "CONNECTION_ESTABLISHED",
-            "port": serial_mgr.port,
-            "simulation": serial_mgr.use_simulation,
-            "is_connected": serial_mgr.is_connected
+            "serial_port": serial_mgr.port,
+            "serial_connected": serial_mgr.is_connected,
+            "mqtt_connected": mqtt_mgr.is_connected,
+            "mqtt_host": mqtt_mgr.host,
+            "mqtt_topic": mqtt_mgr.topic
         })
 
         try:
             while True:
                 await websocket.receive_text()
         except WebSocketDisconnect:
-            ws_manager.disconnect(websocket)
+            await ws_manager.disconnect(websocket)
         except Exception:
-            ws_manager.disconnect(websocket)
+            await ws_manager.disconnect(websocket)
 
     return router

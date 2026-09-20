@@ -10,7 +10,8 @@ export function useWebSocketTelemetry(onWsMessage?: (data: any) => void) {
 
   const [ports, setPorts] = useState<PortInfo[]>([]);
   const [selectedPort, setSelectedPort] = useState<string>('');
-  const [useSimulation, setUseSimulation] = useState<boolean>(false);
+  const [serialConnected, setSerialConnected] = useState<boolean>(false);
+  const [mqttConnected, setMqttConnected] = useState<boolean>(false);
   const [wsConnected, setWsConnected] = useState<boolean>(false);
   const [packetRate, setPacketRate] = useState<number>(0);
 
@@ -20,24 +21,26 @@ export function useWebSocketTelemetry(onWsMessage?: (data: any) => void) {
   const onWsMessageRef = useRef(onWsMessage);
   onWsMessageRef.current = onWsMessage;
 
-  // Scan physical ports from backend
   const scanPorts = useCallback(async () => {
     try {
       const res = await fetch('http://127.0.0.1:8000/api/ports');
       const json = await res.json();
       setPorts(json.ports || []);
-      setUseSimulation(json.is_simulation);
+      setSerialConnected(Boolean(json.is_connected));
       if (json.current_port) {
         setSelectedPort(json.current_port);
-      } else if (json.ports && json.ports.length > 0 && !selectedPort) {
+      } else if (json.ports?.length > 0 && !selectedPort) {
         setSelectedPort(json.ports[0].device);
       }
+
+      const mqttRes = await fetch('http://127.0.0.1:8000/api/mqtt');
+      const mqttJson = await mqttRes.json();
+      setMqttConnected(Boolean(mqttJson.connected));
     } catch (err) {
-      console.warn('Backend currently unreachable', err);
+      console.warn('Backend unreachable during status poll', err);
     }
   }, [selectedPort]);
 
-  // Hydrate recent entries from database on mount (only treat recent entries as live state)
   const hydrateRecent = useCallback(async () => {
     try {
       const res = await fetch('http://127.0.0.1:8000/api/telemetry/recent?limit=100');
@@ -48,9 +51,7 @@ export function useWebSocketTelemetry(onWsMessage?: (data: any) => void) {
 
         const now = Date.now() / 1000;
         json.data.forEach((pkt: TelemetryPacket) => {
-          // Only hydrate as active latest if packet is recent (< 30 seconds old)
-          const age = now - (pkt.timestamp || 0);
-          if (age < 30) {
+          if (now - (pkt.timestamp || 0) < 30) {
             if (pkt.pole_id === 1) setLatestPole1(pkt);
             else if (pkt.pole_id === 2) setLatestPole2(pkt);
             else if (pkt.pole_id === 3) setLatestPole3(pkt);
@@ -62,31 +63,24 @@ export function useWebSocketTelemetry(onWsMessage?: (data: any) => void) {
         }
       }
     } catch (err) {
-      console.warn('Could not fetch historical telemetry', err);
+      console.warn('Could not fetch recent telemetry', err);
     }
   }, []);
 
-  // Configure Port or toggle simulation mode
-  const handleConfigUpdate = useCallback(async (simMode: boolean, portName: string) => {
+  const handleConfigUpdate = useCallback(async (portName: string) => {
     try {
       await fetch('http://127.0.0.1:8000/api/ports/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          port: portName,
-          baudrate: 115200,
-          use_simulation: simMode
-        })
+        body: JSON.stringify({ port: portName, baudrate: 115200 })
       });
-      setUseSimulation(simMode);
       setSelectedPort(portName);
       scanPorts();
     } catch (err) {
-      console.error('Config update failed', err);
+      console.error('Port configuration failed', err);
     }
   }, [scanPorts]);
 
-  // Reset all data
   const handleResetData = useCallback(async () => {
     try {
       await fetch('http://127.0.0.1:8000/api/telemetry/reset', { method: 'POST' });
@@ -97,37 +91,38 @@ export function useWebSocketTelemetry(onWsMessage?: (data: any) => void) {
       setLatestPole3(null);
       setLatestAny(null);
     } catch (err) {
-      console.error('Reset failed', err);
+      console.error('Telemetry reset failed', err);
     }
   }, []);
 
-  // WebSocket connection & frame throttling
   useEffect(() => {
     scanPorts();
     hydrateRecent();
 
-    const hzInterval = setInterval(() => {
+    const rateInterval = setInterval(() => {
       setPacketRate(packetCountRef.current);
       packetCountRef.current = 0;
     }, 1000);
 
-    let reconnectTimer: any = null;
+    let reconnectTimer: ReturnType<typeof setTimeout>;
 
     const connectWebSocket = () => {
       const ws = new WebSocket('ws://127.0.0.1:8000/ws');
       wsRef.current = ws;
 
-      ws.onopen = () => {
-        setWsConnected(true);
-        console.log('[WS] Connected to telemetry stream');
-      };
+      ws.onopen = () => setWsConnected(true);
 
       ws.onmessage = (event) => {
         try {
           const packet = JSON.parse(event.data);
-          if (onWsMessageRef.current) {
-            onWsMessageRef.current(packet);
+          if (onWsMessageRef.current) onWsMessageRef.current(packet);
+
+          if (packet.type === 'CONNECTION_ESTABLISHED') {
+            setSerialConnected(Boolean(packet.serial_connected));
+            setMqttConnected(Boolean(packet.mqtt_connected));
+            return;
           }
+
           if (packet.type === 'TELEMETRY_RESET') {
             historyRef.current = [];
             setTelemetryHistory([]);
@@ -137,6 +132,7 @@ export function useWebSocketTelemetry(onWsMessage?: (data: any) => void) {
             setLatestAny(null);
             return;
           }
+
           if (packet.seq !== undefined) {
             packetCountRef.current += 1;
             setLatestAny(packet);
@@ -145,15 +141,13 @@ export function useWebSocketTelemetry(onWsMessage?: (data: any) => void) {
             else if (packet.pole_id === 2) setLatestPole2(packet);
             else if (packet.pole_id === 3) setLatestPole3(packet);
 
-            // High performance sliding window (max 90 items, 30 per pole)
             historyRef.current = [...historyRef.current, packet].slice(-90);
-
             window.requestAnimationFrame(() => {
               setTelemetryHistory(historyRef.current);
             });
           }
         } catch {
-          // Ignore non-telemetry control frames
+          // Ignore control frames
         }
       };
 
@@ -162,16 +156,14 @@ export function useWebSocketTelemetry(onWsMessage?: (data: any) => void) {
         reconnectTimer = setTimeout(connectWebSocket, 2000);
       };
 
-      ws.onerror = () => {
-        ws.close();
-      };
+      ws.onerror = () => ws.close();
     };
 
     connectWebSocket();
 
     return () => {
-      clearInterval(hzInterval);
-      if (reconnectTimer) clearTimeout(reconnectTimer);
+      clearInterval(rateInterval);
+      clearTimeout(reconnectTimer);
       if (wsRef.current) wsRef.current.close();
     };
   }, [scanPorts, hydrateRecent]);
@@ -184,7 +176,8 @@ export function useWebSocketTelemetry(onWsMessage?: (data: any) => void) {
     latestAny,
     ports,
     selectedPort,
-    useSimulation,
+    serialConnected,
+    mqttConnected,
     wsConnected,
     packetRate,
     scanPorts,

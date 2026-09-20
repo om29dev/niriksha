@@ -25,6 +25,8 @@ export interface TelemetryPacket {
   mq7?: number | null;
   mq135?: number | null;
   mq136?: number | null;
+  electrocution_risk_index?: number;
+  fire_combustion_index?: number;
   sensors?: Record<string, SensorPoint>;
   status: string;
   source?: string;

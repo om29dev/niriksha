@@ -40,8 +40,28 @@
    - Always check the available skills (`.agents/skills/` and registered skills) before planning, implementing, or modifying features.
    - If a task touches an area covered by a skill (e.g., `fastapi-iot-backend`, `postgres-asyncpg-iot`, `pyserial-iot-telemetry`, `react-iot-dashboard`, `offline-iot-dashboard`, `ai-telemetry-assistant`, `ollama-ai-engine`, `spatial-map-reporting`), you MUST inspect and consult the relevant `SKILL.md` before executing changes.
 
-8. **Modular File Architecture & Scalability Standard**
-   - Favor clean, focused, modular files under 100 lines wherever feasible.
-   - Sub-components (legends, modals, inspection cards, selectors) should be organized in designated directories (`components/map/`, `components/dashboard/`, `constants/`, etc.).
+8. **Modular File Architecture & Strict File Size Limit (< 200 Lines)**
+   - No code file (Python, TypeScript, or JSX) shall exceed 200 lines. Every module must adhere strictly to the Single Responsibility Principle.
+   - Favor clean, focused, modular sub-files under 100-150 lines wherever feasible.
+   - Organize sub-components in designated directories (`core/`, `db/`, `protocols/`, `analytics/`, `ai/`, `routers/`, `components/dashboard/`, etc.).
    - Multi-node selectors must always utilize scalable search dropdowns (`PoleSelectDropdown`) to support arbitrary fleet growth beyond 3 poles.
+
+9. **Human-Grade Craftsmanship (No AI Clichés)**
+   - Code must look natural, intentional, and human-written by experienced systems engineers.
+   - Strictly avoid synthetic AI boilerplate comments (e.g. `# This function does xyz`, `# Define main function`, `# Return the result`).
+   - Implement real-world defensive engineering: handle concrete exceptions, resource cleanups, edge cases, and type safety cleanly without verbose filler.
+
+10. **Strict Production Protocols (Zero Mock / Simulated Ingestion)**
+   - Mock simulation and synthetic random generators (`mock_simulator.py` and UI simulation toggles) are strictly prohibited in production runtimes.
+   - Telemetry must be ingested exclusively through real physical protocols: Physical Serial COM (`pyserial`) and Industrial MQTT Broker (`aiomqtt`).
+
+11. **Advanced Algorithmic Telemetry Processing**
+   - Ingested telemetry must pass through an algorithmic analytics pipeline before database buffering and WebSocket broadcasting:
+     - **1D Kalman Filtering**: Adaptive noise rejection on raw analog and ultrasonic sensors (water depth, gas ADC, temperature).
+     - **Streaming Statistical Anomaly Detection**: Exponentially Weighted Moving Average (EWMA) dynamic baseline tracking, streaming Z-score spike flagging, and Cumulative Sum (CUSUM) drift detection.
+     - **Multi-Sensor Composite Hazard Fusion**: Cross-sensor risk indexing (e.g., Electrocution Risk Index fusing voltage and water submersion, Fire & Combustion Index fusing thermal and gas telemetry, and structural tilt debounce filtering).
+
+12. **Skill Consultation & Adherence (Mandatory)**
+   - Always check the available skills (`.agents/skills/` and registered skills) before planning, implementing, or modifying features.
+   - If a task touches an area covered by a skill (e.g., `fastapi-iot-backend`, `postgres-asyncpg-iot`, `pyserial-iot-telemetry`, `react-iot-dashboard`, `offline-iot-dashboard`, `ai-telemetry-assistant`, `ollama-ai-engine`, `spatial-map-reporting`), you MUST inspect and consult the relevant `SKILL.md` before executing changes.
 

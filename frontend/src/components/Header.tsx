@@ -15,7 +15,8 @@ export interface HeaderProps {
   tempHazardPoles?: PoleId[];
   gasHazardPoles?: PoleId[];
   wsConnected: boolean;
-  useSimulation: boolean;
+  serialConnected?: boolean;
+  mqttConnected?: boolean;
   selectedPort: string;
   packetRate: number;
   unresolvedAlertsCount?: number;

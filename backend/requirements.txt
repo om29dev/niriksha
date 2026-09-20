@@ -4,3 +4,5 @@ pyserial>=3.5
 pydantic>=2.8.0
 asyncpg>=0.30.0
 python-dotenv>=1.0.0
+aiomqtt>=2.5.0
+paho-mqtt>=2.1.0
