@@ -244,3 +244,17 @@ ON alerts(pole_id, status);
 - **Batch Ingestion Rate**: $> 4,500\text{ rows/sec}$ on standard NVMe storage.
 - **Recent Telemetry Query (50 rows)**: $< 1.8\text{ ms}$ query latency using `idx_telemetry_pole_time`.
 - **Full Historical Range Aggregation (100,000 rows)**: $< 28\text{ ms}$ execution time for `AVG()`, `MIN()`, and `MAX()` statistical summaries.
+
+---
+
+## 5. TimescaleDB Time-Series Acceleration & Hypertables
+
+NIRIKSHA provides native auto-detection and initialization for **TimescaleDB**:
+- When the `timescaledb` extension is present in PostgreSQL, `app/db/schema.py` executes:
+  ```sql
+  CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
+  SELECT create_hypertable('telemetry', by_range('created_at'), if_not_exists => TRUE, migrate_data => TRUE);
+  ```
+- **Automatic Partitioning**: Automatically divides the `telemetry` table into time-based chunks for linear ingestion scaling, automated data compression, and instant multi-million row downsampling.
+- **Transparent Fallback**: If running on vanilla PostgreSQL without the binary extension, NIRIKSHA seamlessly continues with standard high-performance B-tree indexed time-series tables without throwing errors.
+

@@ -90,4 +90,37 @@ async def create_tables_and_indexes(conn: asyncpg.Connection):
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_telemetry_pole_time ON telemetry(pole_id, timestamp DESC);")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_alerts_status_time ON alerts(status, triggered_at DESC);")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_alerts_pole_time ON alerts(pole_id, triggered_at DESC);")
+
+    # 5. TimescaleDB Extension & Hypertable Auto-Detection
+    await _configure_timescaledb_if_available(conn)
     logger.info("Database schema migrations and performance indexes verified.")
+
+
+async def _configure_timescaledb_if_available(conn: asyncpg.Connection):
+    """Detects and activates TimescaleDB hypertable for ultra-high-throughput telemetry."""
+    try:
+        is_avail = await conn.fetchval("SELECT count(1) FROM pg_available_extensions WHERE name = 'timescaledb'")
+        if not is_avail:
+            logger.info("TimescaleDB extension not present in PostgreSQL binary; running on optimized standard PostgreSQL.")
+            return
+
+        await conn.execute("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;")
+        is_hyper = await conn.fetchval("""
+            SELECT count(1) FROM _timescaledb_catalog.hypertable 
+            WHERE table_name = 'telemetry'
+        """)
+        if not is_hyper:
+            await conn.execute("""
+                SELECT create_hypertable(
+                    'telemetry', 
+                    by_range('created_at'), 
+                    if_not_exists => TRUE,
+                    migrate_data => TRUE
+                );
+            """)
+            logger.info("TimescaleDB hypertable successfully configured on 'telemetry' table.")
+        else:
+            logger.info("TimescaleDB hypertable active on 'telemetry'.")
+    except Exception as e:
+        logger.warning(f"TimescaleDB initialization skipped or failed: {e}")
+
