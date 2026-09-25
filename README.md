@@ -3,7 +3,8 @@
 <p align="left"><a href="https://www.espressif.com/"><img src="https://img.shields.io/badge/ESP32-E7352C?style=for-the-badge&logo=espressif&logoColor=white" alt="ESP32" /></a> <a href="https://mqtt.org/"><img src="https://img.shields.io/badge/MQTT-660099?style=for-the-badge&logo=eclipse-mosquitto&logoColor=white" alt="MQTT" /></a> <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" /></a> <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a> <a href="https://vite.dev/"><img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" /></a> <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" /></a> <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" /></a> <a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" /></a> <a href="https://www.timescale.com/"><img src="https://img.shields.io/badge/TimescaleDB-FDB515?style=for-the-badge&logo=timescale&logoColor=black" alt="TimescaleDB" /></a> <a href="https://ollama.ai/"><img src="https://img.shields.io/badge/Ollama_AI-000000?style=for-the-badge&logo=ollama&logoColor=white" alt="Ollama AI" /></a></p>
 
 
-> 🚀 **Live Interactive Demo:** [Niriksha - AI-Powered Environmental & Infrastructure Hazard Monitoring System](https://om29dev.github.io/niriksha/)
+> 🚀 **Live Interactive Demo:** [Niriksha - AI-Powered Environmental & Infrastructure Hazard Monitoring System](https://om29dev.github.io/niriksha/)  
+> 📖 **API Documentation:** [NIRIKSHA API Documentation](https://om29dev.github.io/niriksha/docs/)
 
 ---
 
@@ -261,7 +262,8 @@ Once services are running, access the interfaces:
 | :--- | :--- | :--- |
 | **Operations Dashboard** | [http://localhost:5173](http://localhost:5173) | Primary operator control center |
 | **Backend REST API** | [http://127.0.0.1:8000](http://127.0.0.1:8000) | Health and telemetry endpoints |
-| **Interactive API Docs** | [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) | Swagger UI for REST endpoints |
+| **Interactive API Docs (Local)** | [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) | Swagger UI for local REST endpoints |
+| **Published API Docs (Online)** | [NIRIKSHA API Documentation](https://om29dev.github.io/niriksha/docs/) | Hosted static OpenAPI reference |
 | **WebSocket Stream** | `ws://127.0.0.1:8000/ws/telemetry` | Real-time sensor stream |
 
 ---
@@ -351,3 +353,4 @@ For deep technical details, circuit schematics, mathematical equations, and oper
 - **[Operations & Runbook](file:///d:/proj/SIH/docs/08_OPERATIONS_AND_RUNBOOK.md)**: Management CLI commands, environment options, port allocations, and troubleshooting.
 - **[Modular Components](file:///d:/proj/SIH/docs/09_MODULAR_COMPONENTS.md)**: Frontend subcomponents, backend packages, and single-responsibility layout.
 - **[Full Documentation Hub](file:///d:/proj/SIH/docs/README.md)**: Master documentation index.
+- **[NIRIKSHA API Documentation](https://om29dev.github.io/niriksha/docs/)**: Interactive OpenAPI / Swagger documentation hosted on GitHub Pages.
