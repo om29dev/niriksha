@@ -30,107 +30,33 @@ The platform requires no cellular connectivity or external cloud services, opera
 
 ## 📸 System Showcase & Visual Walkthrough
 
-<div align="center">
-
-### 1. Control Center & Live Telemetry Dashboard
-*Real-time sensor metrics, multi-parameter environmental dials, live sliding-window curves, and real-time hazard status banners.*
-
-![Control Center Dashboard](docs/screenshots/dashboard_overview.png)
-
-<br/>
-
-<details open>
-<summary><b>🔍 Expand Secondary Telemetry Views (Sensor Curves & Live Hazard Banner)</b></summary>
-<br/>
-
-| Sliding-Window Telemetry Curves | Live Hardware Threat Detection Banner |
+| **Real-Time Sensor Dashboard** | **Active Threat Banner & Status** |
 | :---: | :---: |
-| ![Live Sensor Curves](docs/screenshots/dashboard_sensor_charts.png) | ![Active Danger Detection Banner](docs/screenshots/dashboard_hazard_banner.png) |
+| [![Dashboard Overview](docs/screenshots/dashboard_overview.png)](docs/screenshots/dashboard_overview.png)<br/>*Live sensor dials, upright orientation, and topology snapshot* | [![Threat Banner](docs/screenshots/dashboard_hazard_banner.png)](docs/screenshots/dashboard_hazard_banner.png)<br/>*Instant hardware warning banner with direct pole navigation* |
 
-</details>
-
-<br/>
-
-### 2. Critical Emergency Alert Intercepts & Lockdown Modals
-*Full-screen visual lockouts and procedural Web Audio sirens triggered instantly when lethal hazard thresholds are breached.*
-
-| Water Electrification & Inundation SOS | Extreme Fire Outbreak & Blaze SOS |
+| **Water Electrification Hazard SOS** | **Extreme Thermal Outbreak SOS** |
 | :---: | :---: |
-| ![Water Electrification Alert Modal](docs/screenshots/alert_electrocution_modal_cutout.png) | ![Fire & Blaze Emergency SOS Modal](docs/screenshots/alert_fire_modal_cutout.png) |
+| [![Water Electrification Alert](docs/screenshots/alert_electrocution_modal_cutout.png)](docs/screenshots/alert_electrocution_modal_cutout.png)<br/>*Critical lockout on voltage potential leakage in flood water* | [![Thermal Fire Alert](docs/screenshots/alert_fire_modal_cutout.png)](docs/screenshots/alert_fire_modal_cutout.png)<br/>*Audible procedural siren & blaze warning over 60°C* |
 
-<br/>
-
-### 3. Geospatial Vector Schematic & Mesh Coverage Map
-*Offline vector schematic detailing physical node coordinates, wireless RF link latencies, dynamic hazard radii, and node health.*
-
-![Geospatial Vector Map](docs/screenshots/interactive_map_view.png)
-
-<br/>
-
-### 4. Fleet Node Architecture & Inventory
-*Hardware configuration, online heartbeat status, MAC/Mesh IDs, and active physical sensor availability across nodes.*
-
-![Fleet Node Architecture & Inventory](docs/screenshots/fleet_node_inventory.png)
-
-<br/>
-
-### 5. Multi-Node Comparative Analytics
-*Instantaneous side-by-side differential telemetry matrix ($\Delta$) and synchronized dual-node time-series correlation charts.*
-
-| Differential Telemetry Matrix ($\Delta$) | Synchronized Multi-Node Comparison Curves |
+| **Geospatial Vector Mesh Topology** | **Fleet Node Architecture & Inventory** |
 | :---: | :---: |
-| ![Telemetry Matrix Comparison](docs/screenshots/comparative_analytics_matrix.png) | ![Synchronized Comparison Curves](docs/screenshots/comparative_analytics_curves.png) |
+| [![Vector Topology Map](docs/screenshots/interactive_map_view.png)](docs/screenshots/interactive_map_view.png)<br/>*Vector map with live RF latency metrics and hazard radii* | [![Fleet Nodes](docs/screenshots/fleet_node_inventory.png)](docs/screenshots/fleet_node_inventory.png)<br/>*Multi-node inventory, sensor health, and mesh IDs* |
 
-<br/>
-
-### 6. Safety & Incident Management Center
-*Persistent PostgreSQL hazard logs, active unacknowledged incidents, manual operator overrides, and CSV audit export.*
-
-| Incident Action Center & Active Hazards | Full Unresolved & Historical Audit Log |
+| **Multi-Node Differential Matrix** | **Dual-Node Time-Series Comparison** |
 | :---: | :---: |
-| ![Incident Management Center](docs/screenshots/incident_management_overview.png) | ![Historical Alerts Audit Log](docs/screenshots/incident_management_table.png) |
+| [![Telemetry Matrix](docs/screenshots/comparative_analytics_matrix.png)](docs/screenshots/comparative_analytics_matrix.png)<br/>*Instantaneous channel differential ($\Delta$) analysis* | [![Comparison Curves](docs/screenshots/comparative_analytics_curves.png)](docs/screenshots/comparative_analytics_curves.png)<br/>*Synchronized multi-channel trend lines* |
 
-<br/>
-
-### 7. Historical Telemetry Log Explorer
-*Air-gapped PostgreSQL time-series explorer with multi-column filtering, sub-second sequence pagination, and raw JSON inspection.*
-
-![Historical Telemetry Audit](docs/screenshots/telemetry_history_view.png)
-
-<br/>
-
-### 8. Compliance & Telemetry Audit Reports
-*Municipal compliance reporting, statistical sample distributions (Min/Avg/Max), severity donut breakdowns, and node ingestion volume.*
-
-| Executive Summary & Metric Distribution | Ingestion Volume & Visual Risk Analytics |
+| **Incident Management & Resolution** | **Historical Telemetry Log Explorer** |
 | :---: | :---: |
-| ![Compliance Report Overview](docs/screenshots/compliance_audit_summary.png) | ![Visual Risk & Ingestion Charts](docs/screenshots/compliance_audit_charts.png) |
+| [![Incident Management](docs/screenshots/incident_management_overview.png)](docs/screenshots/incident_management_overview.png)<br/>*PostgreSQL safety log with operator resolution actions* | [![Telemetry History](docs/screenshots/telemetry_history_view.png)](docs/screenshots/telemetry_history_view.png)<br/>*Air-gapped database query explorer and raw JSON inspector* |
 
-<br/>
-
-### 9. Offline Local AI Diagnostic Assistant
-*Self-hosted Ollama LLM diagnostic reasoning engine providing instant multi-sensor threat evaluations and operator guidance.*
-
-![AI Diagnostic Assistant](docs/screenshots/ai_diagnostic_assistant.png)
-
-<br/>
-
-### 10. System Configuration & Hardware Gateway Settings
-*Physical UART COM port controls, MQTT broker endpoint bridge, real-time threshold calibration sliders, and local database management.*
-
-| Telemetry Input & Threshold Configuration | Ollama LLM & Database Storage Settings |
+| **Compliance Audit & Aggregation** | **Offline Local AI Diagnostic Assistant** |
 | :---: | :---: |
-| ![System Hardware Settings](docs/screenshots/system_settings_config.png) | ![Ollama & Database Settings](docs/screenshots/system_settings_db_ollama.png) |
+| [![Compliance Reports](docs/screenshots/compliance_audit_summary.png)](docs/screenshots/compliance_audit_summary.png)<br/>*Statistical Min/Avg/Max distribution and PDF/CSV export* | [![AI Assistant](docs/screenshots/ai_diagnostic_assistant.png)](docs/screenshots/ai_diagnostic_assistant.png)<br/>*Self-hosted Ollama LLM diagnostic reasoning console* |
 
-<br/>
-
-### 🎥 Video Demonstration
-<!-- Add your video link or embed below -->
-<!-- [![Watch the NIRIKSHA System Demonstration](https://img.shields.io/badge/Video-Watch%20System%20Demo-red?style=for-the-badge&logo=youtube)](YOUR_VIDEO_URL_HERE) -->
-
-*(Video demonstration link placeholder - replace with your recorded showcase video)*
-
-</div>
+| **System & Hardware Settings** | **Sliding-Window Telemetry Curves** |
+| :---: | :---: |
+| [![Hardware Settings](docs/screenshots/system_settings_config.png)](docs/screenshots/system_settings_config.png)<br/>*UART COM port controls, MQTT bridge, and threshold sliders* | [![Sensor Curves](docs/screenshots/dashboard_sensor_charts.png)](docs/screenshots/dashboard_sensor_charts.png)<br/>*Smooth real-time Recharts curves throttled via rAF* |
 
 ---
 
