@@ -9,6 +9,9 @@
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-38B2AC.svg?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Ollama](https://img.shields.io/badge/Ollama-Local%20LLM-black.svg?logo=ollama&logoColor=white)](https://ollama.ai/)
 [![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B%20%7C%207%2B-5391FE.svg?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-2563eb.svg?style=flat&logo=githubpages&logoColor=white)](https://om29dev.github.io/niriksha/)
+
+> 🚀 **Live Interactive Demo:** [Niriksha - AI-Powered Environmental & Infrastructure Hazard Monitoring System](https://om29dev.github.io/niriksha/)
 
 ---
 
