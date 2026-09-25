@@ -278,7 +278,7 @@ fusion_stage -> alert_out: "Enriched Telemetry"
 To guarantee the backend handles bursts without locking the asyncio loop:
 1. **Serial Background Thread**: Dedicated thread reads UART non-blockingly, catching `SerialException` and reconnecting with fixed 2-second backoff.
 2. **aiomqtt Ingestion Task**: Concurrent async coroutine subscribing to `niriksha/poles/+/telemetry`.
-3. **Decoupled Batch Buffer**: Packets append to an in-memory queue. Flushes occur every 250–300 ms or upon reaching 50 records via `asyncpg.Connection.executemany`.
+3. **Decoupled Batch Buffer**: Packets append to an in-memory queue. Flushes occur every 250-300 ms or upon reaching 50 records via `asyncpg.Connection.executemany`.
 4. **WebSocket Fan-Out**: Thread-safe async registry broadcasts packets to connected browser tabs without blocking database transactions.
 
 ---

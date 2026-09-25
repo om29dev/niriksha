@@ -309,7 +309,7 @@ export const TelemetrySourceCard: React.FC<TelemetrySourceCardProps> = ({
                 ) : (
                   ports.map((p) => (
                     <option key={p.device} value={p.device}>
-                      {p.device} — {p.description}
+                      {p.device} - {p.description}
                     </option>
                   ))
                 )}

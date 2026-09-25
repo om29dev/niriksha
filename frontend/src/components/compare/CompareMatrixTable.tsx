@@ -123,7 +123,7 @@ export const CompareMatrixTable: React.FC<CompareMatrixTableProps> = ({
                         {diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)} {row.unit}
                       </span>
                     ) : (
-                      <span style={{ color: '#cbd5e1' }}>—</span>
+                      <span style={{ color: '#cbd5e1' }}>-</span>
                     )}
                   </td>
                   <td style={{ padding: '12px 16px' }}>

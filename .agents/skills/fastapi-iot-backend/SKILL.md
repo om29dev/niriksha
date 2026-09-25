@@ -27,13 +27,13 @@ This skill provides design patterns, architecture guidelines, and workflows for 
   - Close the `asyncpg.Pool` cleanly (`await db.close()`).
 
 ### 2. High-Throughput PostgreSQL & asyncpg Ingestion
-- **Never perform per-packet synchronous SQL inserts.** Telemetry streams can reach 50–200Hz.
+- **Never perform per-packet synchronous SQL inserts.** Telemetry streams can reach 50-200Hz.
 - Use decoupled in-memory batch buffers:
   ```python
   # Push into buffer without blocking the serial / WebSocket loop
   db.add_telemetry_packet(data)
   ```
-- Periodically flush using multi-row batch execution (`executemany` or binary `copy_records_to_table`) every 250–300ms or when the buffer hits batch capacity (e.g., 50–100 items).
+- Periodically flush using multi-row batch execution (`executemany` or binary `copy_records_to_table`) every 250-300ms or when the buffer hits batch capacity (e.g., 50-100 items).
 - Maintain an `asyncpg.Pool` with tuned `min_size` (e.g. 2) and `max_size` (e.g. 10).
 - Load all database credentials from `.env` via `python-dotenv`.
 
@@ -41,7 +41,7 @@ This skill provides design patterns, architecture guidelines, and workflows for 
 - PySerial calls are blocking I/O: run reading loops either in an `asyncio.to_thread` executor or inside a non-blocking asyncio task structure.
 - **Auto-Reconnection Loop:**
   - Catch `serial.SerialException` and `OSError` without terminating the FastAPI server.
-  - Log warning, wait with a backoff (1–2 seconds), re-scan available ports, and attempt reconnect.
+  - Log warning, wait with a backoff (1-2 seconds), re-scan available ports, and attempt reconnect.
   - Call `flushInput()` upon port opening to clear truncated or corrupted frames.
 - **Built-in Mock/Simulator Mode:**
   - When no physical COM port is present or configured, automatically fall back to or allow toggling a synthetic telemetry generator to facilitate development, UI testing, and CI.

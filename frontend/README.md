@@ -136,7 +136,7 @@ frontend/src/
 
 1. **Sliding Window Buffers:** All real-time telemetry series enforce a sliding window buffer of maximum **50 to 100 data points**. Older frames are dropped to prevent memory leaks during 24/7 continuous operation.
 2. **`requestAnimationFrame` Render Throttling:** Incoming high-frequency WebSocket frames are batched and scheduled through `requestAnimationFrame`, preventing UI frame stutter and eliminating canvas lag.
-3. **Procedural Audio Synthesis:** Emergency warning alarms use the browser's native `AudioContext` to synthesize dual-tone wailing sirens (`800Hz` – `1200Hz`) dynamically, ensuring zero external MP3 dependencies.
+3. **Procedural Audio Synthesis:** Emergency warning alarms use the browser's native `AudioContext` to synthesize dual-tone wailing sirens (`800Hz` - `1200Hz`) dynamically, ensuring zero external MP3 dependencies.
 
 ---
 

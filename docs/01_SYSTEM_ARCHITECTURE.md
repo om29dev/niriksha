@@ -223,8 +223,8 @@ In high-frequency IoT environments, executing a single SQL `INSERT` statement pe
 
 ### 2.4 Browser Rendering Performance (Sliding Window & RAF)
 Continuous, 24/7 telemetry monitoring dashboards often suffer from memory leaks and browser tab crashes caused by unbounded DOM node creation or excessive SVG redraws. NIRIKSHA solves this through two deterministic mechanisms:
-1. **Sliding Window Buffer**: The frontend state retains a fixed sliding window of historical points (typically 50–100 samples per metric). As new packets arrive, older entries are sliced off, capping memory footprint at constant space $O(1)$.
-2. **`requestAnimationFrame` Throttling**: When telemetry arrives at 20–50 Hz from multiple nodes, the frontend does not trigger React state updates for every single packet. Instead, packets are enqueued in a lightweight reference buffer, and a `requestAnimationFrame` loop flushes updates to state at the monitor's native refresh rate (60 Hz), eliminating frame drop and UI freeze.
+1. **Sliding Window Buffer**: The frontend state retains a fixed sliding window of historical points (typically 50-100 samples per metric). As new packets arrive, older entries are sliced off, capping memory footprint at constant space $O(1)$.
+2. **`requestAnimationFrame` Throttling**: When telemetry arrives at 20-50 Hz from multiple nodes, the frontend does not trigger React state updates for every single packet. Instead, packets are enqueued in a lightweight reference buffer, and a `requestAnimationFrame` loop flushes updates to state at the monitor's native refresh rate (60 Hz), eliminating frame drop and UI freeze.
 
 ---
 
@@ -235,15 +235,15 @@ The table below traces a telemetry metric from physical transducer conversion to
 | Stage | Subsystem | File Reference | Latency | Primary Responsibility |
 | :--- | :--- | :--- | :--- | :--- |
 | **1. Transduction** | Microcontroller Hardware | `firmware/pole1_sensor_node/` | < 1 ms | Analog sensor sampling (ADC 12-bit) and timer interrupts. |
-| **2. Mesh Routing** | painlessMesh 2.4GHz RF | `firmware/pole1_sensor_node/` | 15–40 ms | ESP-NOW wireless mesh routing with staggered transmission. |
+| **2. Mesh Routing** | painlessMesh 2.4GHz RF | `firmware/pole1_sensor_node/` | 15-40 ms | ESP-NOW wireless mesh routing with staggered transmission. |
 | **3. Hub Serializing**| ESP32 Gateway Node | `firmware/pole3_gateway_hub/` | 2 ms | Root sink JSON encapsulation and UART TX (`MESH_JSON:`). |
-| **4. Host Ingestion** | PySerial / aiomqtt | `app/protocols/` | 1–5 ms | Non-blocking line reading, frame stripping, payload decoding. |
+| **4. Host Ingestion** | PySerial / aiomqtt | `app/protocols/` | 1-5 ms | Non-blocking line reading, frame stripping, payload decoding. |
 | **5. Normalization** | Schema Normalizer | `app/protocols/normalizer.py`| < 0.5 ms | Schema alignment, inactive sensor `NOT_CONNECTED` flagging. |
 | **6. Signal Filtering**| 1D Kalman Filter | `app/analytics/kalman.py` | < 0.2 ms | Process noise rejection on analog ADC and ultrasonic depth. |
 | **7. Anomaly & Fusion**| Anomaly Bank & Fusion | `app/analytics/fusion_engine.py`|< 0.5 ms | Z-score surge check, CUSUM drift, Electrocution Risk Index. |
-| **8. Memory Buffer** | In-Memory Batch Queue | `app/db/buffer.py` | 0–300 ms | Temporal batching before multi-row database write. |
-| **9. Persistence** | asyncpg Pool & PostgreSQL | `app/db/telemetry_repo.py` | 2–8 ms | Multi-row batch transaction commit with indexed columns. |
-| **10. WebSocket Push**| Connection Manager | `app/connection_manager.py` | 1–3 ms | Async broadcasting to active browser clients. |
+| **8. Memory Buffer** | In-Memory Batch Queue | `app/db/buffer.py` | 0-300 ms | Temporal batching before multi-row database write. |
+| **9. Persistence** | asyncpg Pool & PostgreSQL | `app/db/telemetry_repo.py` | 2-8 ms | Multi-row batch transaction commit with indexed columns. |
+| **10. WebSocket Push**| Connection Manager | `app/connection_manager.py` | 1-3 ms | Async broadcasting to active browser clients. |
 | **11. RAF Dispatch** | Client Sliding Window | `frontend/src/hooks/` | 16 ms | RAF synchronization, metric sliding window slice(-100). |
 | **12. UI Render** | Recharts / SVG Schematic | `frontend/src/components/` | 16 ms | Canvas draw, acoustic hazard siren trigger, DOM update. |
 

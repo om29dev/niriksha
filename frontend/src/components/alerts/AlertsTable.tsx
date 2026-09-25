@@ -98,7 +98,7 @@ export const AlertsTable: React.FC<AlertsTableProps> = ({
                         style={{ cursor: 'pointer', accentColor: '#2563eb' }}
                       />
                     ) : (
-                      <span style={{ color: '#cbd5e1' }}>—</span>
+                      <span style={{ color: '#cbd5e1' }}>-</span>
                     )}
                   </td>
 
@@ -173,7 +173,7 @@ export const AlertsTable: React.FC<AlertsTableProps> = ({
                   <td style={{ padding: '12px 14px', verticalAlign: 'middle', fontFamily: 'monospace', fontWeight: '600', color: '#334155' }}>
                     {alert.trigger_value !== null && alert.trigger_value !== undefined
                       ? `${alert.trigger_value} ${alert.unit || ''}`
-                      : '—'}
+                      : '-'}
                   </td>
 
                   <td style={{ padding: '12px 14px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>

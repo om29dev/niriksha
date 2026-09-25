@@ -18,7 +18,7 @@ This skill details the patterns for building and operating spatial map topologie
    - All spatial rendering is generated via declarative SVG elements (`viewBox="0 0 1000 650"`).
    - Architectural coordinate grid pattern overlays are generated via SVG `<pattern>`.
 2. **Node Pins & Link Topology:**
-   - Coordinates are stored as relative percentages (`x: 0–100`, `y: 0–100`) mapped to physical Lat/Lng coordinates.
+   - Coordinates are stored as relative percentages (`x: 0-100`, `y: 0-100`) mapped to physical Lat/Lng coordinates.
    - RF painlessMesh wireless links are illustrated with animated/staggered dashed stroke lines and cadence indicators (2300ms / 2500ms).
    - Dynamic coverage radii reflect each node's transceiver specifications.
 3. **Interactive Inspection:**

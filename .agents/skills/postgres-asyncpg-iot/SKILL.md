@@ -17,7 +17,7 @@ This skill documents high-throughput time-series data storage, connection poolin
 - **Anti-Pattern:** Inserting records row-by-row on incoming network/serial packets (`INSERT INTO ... VALUES (...)`). At high frequencies, this causes lock contention, connection saturation, and asyncio event loop lag.
 - **Pattern:** Decoupled buffer & batch transactions:
   - Keep an in-memory batch buffer in Python (`self._batch_buffer: list[tuple] = []`).
-  - Flush either when buffer reaches threshold (e.g. 50–100 items) or every interval (250–300ms).
+  - Flush either when buffer reaches threshold (e.g. 50-100 items) or every interval (250-300ms).
   - Use `asyncpg` multi-row operations:
     ```python
     async with pool.acquire() as conn:

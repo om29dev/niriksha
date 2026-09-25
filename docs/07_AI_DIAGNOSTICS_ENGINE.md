@@ -134,7 +134,7 @@ def evaluate_pole_safety(pole_data: Dict[str, Any]) -> Dict[str, Any]:
 When natural language conversation, incident summarization, or shift-handover reporting is required, the system invokes a lightweight local model via Ollama.
 
 ### 3.1 Recommended Lightweight Models
-NIRIKSHA is designed to run efficiently on commodity industrial field laptops (Intel i5/i7, 8–16 GB RAM) without requiring discrete enterprise GPUs:
+NIRIKSHA is designed to run efficiently on commodity industrial field laptops (Intel i5/i7, 8-16 GB RAM) without requiring discrete enterprise GPUs:
 - **`qwen2.5:0.5b`** (Default Recommended): Superb diagnostic reasoning and markdown table generation with a RAM footprint under 600 MB.
 - **`qwen2.5:1.5b`**: Enhanced reasoning for complex municipal reports (approx. 1.2 GB RAM).
 - **`llama3.2:1b`**: High instruction-following fidelity with fast token generation.

@@ -22,7 +22,7 @@ This skill documents the integration, operation, prompt crafting, and failure re
 2. **Model Selection Standard:**
    - **Default Recommended Model:** `qwen2.5:0.5b` (~397 MB).
      - Exceptional instruction following for low parameter counts.
-     - Fast CPU token generation (~20–40 tokens/sec on standard developer laptops).
+     - Fast CPU token generation (~20-40 tokens/sec on standard developer laptops).
      - Fits entirely in lightweight RAM without competing with PostgreSQL or FastAPI processes.
    - **Alternative High-Fidelity Model:** `llama3.2:1b` (~1.3 GB) or `qwen2.5:1.5b` (~986 MB) when workstation has dedicated VRAM.
 

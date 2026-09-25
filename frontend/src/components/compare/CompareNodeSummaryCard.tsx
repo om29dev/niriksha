@@ -77,7 +77,7 @@ export const CompareNodeSummaryCard: React.FC<CompareNodeSummaryCardProps> = ({
             {state?.isOffline ? 'Offline' : 'Online'}
           </span>
           <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
-            Seq #{latest?.seq ?? '—'}
+            Seq #{latest?.seq ?? '-'}
           </div>
         </div>
       </div>

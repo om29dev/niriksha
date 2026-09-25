@@ -171,10 +171,10 @@ To guarantee zero collisions across continuous operation:
 
 ### 3.5 Metal Oxide Gas Array (MQ-7, MQ-135, MQ-136, MQ-2)
 - **Gas Instrumentation**:
-  - **MQ-7**: Carbon Monoxide (CO) — tracks smoldering electrical insulation and vehicular exhaust.
-  - **MQ-135**: Air Quality (Ammonia, NOx, Benzene) — monitors municipal air degradation.
-  - **MQ-136**: Hydrogen Sulfide ($H_2S$) — detects lethal sewer gas escapes from storm drains.
-  - **MQ-2**: Combustible Gases & Smoke (LPG, Propane, Methane) — detects explosive pipe leaks.
+  - **MQ-7**: Carbon Monoxide (CO) - tracks smoldering electrical insulation and vehicular exhaust.
+  - **MQ-135**: Air Quality (Ammonia, NOx, Benzene) - monitors municipal air degradation.
+  - **MQ-136**: Hydrogen Sulfide ($H_2S$) - detects lethal sewer gas escapes from storm drains.
+  - **MQ-2**: Combustible Gases & Smoke (LPG, Propane, Methane) - detects explosive pipe leaks.
 - **Analog-to-PPM Normalization**: The raw 12-bit ADC reading ($0\text{ to }4095$) from the ESP32 is normalized into approximate PPM curves:
   $$\text{ppm}_{\text{MQ7}} = \text{raw}_{\text{ADC}} \times \left(\frac{100.0}{4095.0}\right)$$
   $$\text{ppm}_{\text{MQ135}} = \text{raw}_{\text{ADC}} \times \left(\frac{300.0}{4095.0}\right)$$

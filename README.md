@@ -1,4 +1,4 @@
-# NIRIKSHA — Distributed IoT Environmental & Hazard Monitoring Network
+# NIRIKSHA - Distributed IoT Environmental & Hazard Monitoring Network
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -69,7 +69,7 @@ The platform requires no cellular connectivity or external cloud services, opera
 <!-- Add your video link or embed below -->
 <!-- [![Watch the NIRIKSHA System Demonstration](https://img.shields.io/badge/Video-Watch%20System%20Demo-red?style=for-the-badge&logo=youtube)](YOUR_VIDEO_URL_HERE) -->
 
-*(Video demonstration link placeholder — replace with your recorded showcase video)*
+*(Video demonstration link placeholder - replace with your recorded showcase video)*
 
 </div>
 
@@ -130,7 +130,7 @@ The NIRIKSHA architecture spans physical microcontrollers in the field, dual har
 
 4. **Persistence & Database Buffering (`backend/app/db/`):**
    - Decoupled in-memory batch ring buffer collecting telemetry records.
-   - Flushes to PostgreSQL every 250–300 ms or upon reaching 50 records in batched multi-row transactions via an `asyncpg` connection pool.
+   - Flushes to PostgreSQL every 250-300 ms or upon reaching 50 records in batched multi-row transactions via an `asyncpg` connection pool.
 
 5. **Local AI Diagnostic Assistant (`backend/app/ai/`):**
    - Tier 1: Deterministic safety heuristics providing instant, reliable hazard verification.
@@ -138,7 +138,7 @@ The NIRIKSHA architecture spans physical microcontrollers in the field, dual har
 
 6. **Web Operations Dashboard (`frontend/`):**
    - React 19 + Vite + TypeScript interface styled with clean slate laboratory aesthetics.
-   - Sliding window memory management (50–100 data points) and `requestAnimationFrame` throttling for stable 24/7 operation.
+   - Sliding window memory management (50-100 data points) and `requestAnimationFrame` throttling for stable 24/7 operation.
    - Procedural dual-tone emergency siren synthesizer using the Web Audio API.
 
 ---

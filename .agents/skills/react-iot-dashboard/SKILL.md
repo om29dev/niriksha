@@ -47,7 +47,7 @@ This skill details component architecture, state management, real-time data thro
 - Buffer incoming WebSocket messages in a mutable ref (`useRef`) and throttle UI state flushes using `requestAnimationFrame` or a controlled 60fps/16ms tick.
 
 ### 3. Resilient WebSocket Hook Pattern
-- Reconnection loop: If the WebSocket disconnects, wait 2–3s and automatically reconnect.
+- Reconnection loop: If the WebSocket disconnects, wait 2-3s and automatically reconnect.
 - Expose connection status (`CONNECTING`, `OPEN`, `CLOSING`, `CLOSED`) to visual badges.
 - Handle malformed JSON safely without throwing uncaught component errors.
 

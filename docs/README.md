@@ -140,5 +140,5 @@ SIH/
 
 1. **Strict Offline Air-Gap Compliance**: No asset, script, font, icon, or model weight is ever fetched from external CDNs or cloud endpoints. Everything is bundled locally.
 2. **Deterministic Reliability over Synthetic Mocks**: The system never runs fake random data generators in production. Telemetry arrives from physical microcontrollers over Serial COM or industrial MQTT brokers.
-3. **Decoupled Asynchronous Throughput**: Incoming high-frequency telemetry never writes directly to the disk on the network thread. It passes through an algorithmic processing pipeline, enters an in-memory batch ring buffer, and flushes to PostgreSQL every 250–300ms in batched multi-row transactions.
-4. **Client Render Stability**: The client enforces a sliding window buffer of 50–100 data points per metric and uses `requestAnimationFrame` to decouple WebSocket packet arrival from UI paint cycles, ensuring zero-lag 24/7 continuous operation.
+3. **Decoupled Asynchronous Throughput**: Incoming high-frequency telemetry never writes directly to the disk on the network thread. It passes through an algorithmic processing pipeline, enters an in-memory batch ring buffer, and flushes to PostgreSQL every 250-300ms in batched multi-row transactions.
+4. **Client Render Stability**: The client enforces a sliding window buffer of 50-100 data points per metric and uses `requestAnimationFrame` to decouple WebSocket packet arrival from UI paint cycles, ensuring zero-lag 24/7 continuous operation.

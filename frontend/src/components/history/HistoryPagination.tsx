@@ -77,7 +77,7 @@ export const HistoryPagination: React.FC<HistoryPaginationProps> = ({
       {/* Left: Summary Count & Page Size */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <div>
-          Showing <strong>{startRecord.toLocaleString()}</strong>–<strong>{endRecord.toLocaleString()}</strong> of{' '}
+          Showing <strong>{startRecord.toLocaleString()}</strong>-<strong>{endRecord.toLocaleString()}</strong> of{' '}
           <strong>{totalCount.toLocaleString()}</strong> frames
         </div>
         {onPageSizeChange && (

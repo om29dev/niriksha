@@ -19,7 +19,7 @@ This skill documents patterns for integrating microcontroller serial hardware (U
 - On disconnect:
   - Close any dangling port handles.
   - Switch internal status to `DISCONNECTED` or `RECONNECTING`.
-  - Pause for a fixed or exponential backoff period (1–2 seconds).
+  - Pause for a fixed or exponential backoff period (1-2 seconds).
   - Rescan available COM ports using `serial.tools.list_ports.comports()`.
   - Attempt auto-reconnection continuously in the background.
 

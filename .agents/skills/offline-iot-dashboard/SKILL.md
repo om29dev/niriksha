@@ -16,9 +16,9 @@ This skill documents the end-to-end architecture, conventions, and operational p
 ## 🏛️ Architecture & Principles
 
 ### 1. Database Ingestion Strategy: PostgreSQL + asyncpg (Golden Rule)
-- **Decoupled Memory Ingestion:** In high-frequency telemetry (50Hz–200Hz+), writing every single row synchronously blocks the event loop and saturates connection pools. 
+- **Decoupled Memory Ingestion:** In high-frequency telemetry (50Hz-200Hz+), writing every single row synchronously blocks the event loop and saturates connection pools. 
   - Push incoming serial packets into an in-memory buffer (`_batch_buffer`).
-  - Flush the buffer in bulk using `asyncpg` multi-row batch inserts (`executemany` or binary `copy_records_to_table`) when it hits a threshold (e.g., 50 records) or an interval (e.g., every 250–300ms).
+  - Flush the buffer in bulk using `asyncpg` multi-row batch inserts (`executemany` or binary `copy_records_to_table`) when it hits a threshold (e.g., 50 records) or an interval (e.g., every 250-300ms).
 - **Long-Lived Connection Pooling:** 
   - Manage a single `asyncpg.Pool` instance inside FastAPI's `lifespan` context.
   - Tune pool size using `min_size` (e.g., 2) and `max_size` (e.g., 10) to eliminate TCP/SSL handshake churn.
@@ -44,7 +44,7 @@ This skill documents the end-to-end architecture, conventions, and operational p
   - Fonts bundled statically via `@fontsource/inter`.
   - Icons bundled statically via `lucide-react`.
 - **Canvas & Memory Protection:**
-  - Keep a sliding window buffer of maximum 50–100 data points per metric series (`slice(-50)`).
+  - Keep a sliding window buffer of maximum 50-100 data points per metric series (`slice(-50)`).
   - Decouple WebSocket message ingestion from React rendering using `requestAnimationFrame` to prevent SVG reconciliation bottlenecks over 24/7 uptime.
 
 ### 4. Laboratory-Grade Light Theme Design System

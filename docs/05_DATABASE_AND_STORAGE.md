@@ -112,7 +112,7 @@ pool_subsystem.worker_conn -> db_tables.telemetry_table: "Multi-row INSERT batch
 ## 2. In-Memory Batch Buffer Mechanics (`buffer.py`)
 
 ### 2.1 The Ingestion Bottleneck
-Under active network operation, three street poles transmitting every 2.3–2.5 seconds generate continuous traffic. With fleet expansion (e.g. 50–100 poles), incoming packet rates scale to 40+ Hz. Executing an individual database network round-trip per packet would incur:
+Under active network operation, three street poles transmitting every 2.3-2.5 seconds generate continuous traffic. With fleet expansion (e.g. 50-100 poles), incoming packet rates scale to 40+ Hz. Executing an individual database network round-trip per packet would incur:
 - Constant TCP socket overhead.
 - Transaction lock acquisition per row.
 - Severe CPU context switching in Python's async event loop.
