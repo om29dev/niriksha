@@ -5,9 +5,35 @@ import { HistoryTable, type SortColumn, type SortDirection } from '../history/Hi
 import { HistoryPagination } from '../history/HistoryPagination';
 import { HistoryPacketModal } from '../history/HistoryPacketModal';
 
+const generateHistoricalRecords = (): TelemetryPacket[] => {
+  const list: TelemetryPacket[] = [];
+  const now = Math.floor(Date.now() / 1000);
+  for (let i = 0; i < 90; i++) {
+    const poleId = ((i % 3) + 1) as 1 | 2 | 3;
+    const timeOffset = (90 - i) * 20;
+    const isUpright = i !== 42 && i !== 75;
+    list.push({
+      pole_id: poleId,
+      seq: 2000 - (90 - i),
+      timestamp: now - timeOffset,
+      is_upright: isUpright,
+      voltage: Number((0.04 + (i % 5) * 0.08).toFixed(2)),
+      water_depth: Number((12.5 + (i % 7) * 1.5).toFixed(1)),
+      power: Number((14.2 + (i % 4) * 0.8).toFixed(1)),
+      temperature: Number((26.0 + (i % 6) * 0.7).toFixed(1)),
+      humidity: Number((58.0 + (i % 8) * 1.2).toFixed(1)),
+      mq7: Number((8.5 + (i % 5) * 1.2).toFixed(1)),
+      mq135: Number((24.0 + (i % 6) * 2.1).toFixed(1)),
+      mq136: Number((3.2 + (i % 4) * 0.5).toFixed(1)),
+      status: 'HISTORY',
+      alert_message: isUpright ? undefined : `Pole ${poleId} structural tilt detected`
+    });
+  }
+  return list.reverse();
+};
+
 export const HistoryView: React.FC = () => {
-  const [records, setRecords] = useState<TelemetryPacket[]>([]);
-  const [totalCount, setTotalCount] = useState<number>(0);
+  const [allRecords] = useState<TelemetryPacket[]>(generateHistoricalRecords);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(20);
@@ -25,31 +51,10 @@ export const HistoryView: React.FC = () => {
 
   const fetchHistory = useCallback(async () => {
     setIsLoading(true);
-    try {
-      const offset = (currentPage - 1) * pageSize;
-      let url = `http://127.0.0.1:8000/api/telemetry/history?limit=${pageSize}&offset=${offset}`;
-
-      if (poleFilter !== 'all') {
-        url += `&pole_id=${poleFilter}`;
-      }
-      if (uprightFilter === 'upright') {
-        url += `&is_upright=true`;
-      } else if (uprightFilter === 'tilted') {
-        url += `&is_upright=false`;
-      }
-
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json && json.data && Array.isArray(json.data)) {
-        setRecords(json.data);
-        setTotalCount(json.total || 0);
-      }
-    } catch (err) {
-      console.error('Failed to fetch historical telemetry', err);
-    } finally {
+    setTimeout(() => {
       setIsLoading(false);
-    }
-  }, [currentPage, pageSize, poleFilter, uprightFilter]);
+    }, 150);
+  }, []);
 
   useEffect(() => {
     fetchHistory();
@@ -65,10 +70,22 @@ export const HistoryView: React.FC = () => {
   };
 
   const filteredRecords = useMemo(() => {
-    if (!searchQuery.trim()) return records;
+    let result = allRecords;
+
+    if (poleFilter !== 'all') {
+      result = result.filter((r) => r.pole_id === poleFilter);
+    }
+
+    if (uprightFilter === 'upright') {
+      result = result.filter((r) => r.is_upright === true);
+    } else if (uprightFilter === 'tilted') {
+      result = result.filter((r) => r.is_upright === false);
+    }
+
+    if (!searchQuery.trim()) return result;
     const q = searchQuery.toLowerCase().trim();
 
-    return records.filter((r) => {
+    return result.filter((r) => {
       if (`#${r.seq}`.includes(q) || String(r.seq).includes(q)) return true;
       if (`pole ${r.pole_id}`.toLowerCase().includes(q) || String(r.pole_id) === q) return true;
       const orientationStr = r.is_upright === false ? 'tilted fallen' : 'upright';
@@ -80,10 +97,9 @@ export const HistoryView: React.FC = () => {
       if (r.humidity !== null && r.humidity !== undefined && `${r.humidity.toFixed(0)}%`.includes(q)) return true;
       if (r.mq7 !== null && r.mq7 !== undefined && `co ${r.mq7.toFixed(0)}`.includes(q)) return true;
       if (r.mq135 !== null && r.mq135 !== undefined && `air ${r.mq135.toFixed(0)}`.includes(q)) return true;
-      if (r.status && r.status.toLowerCase().includes(q)) return true;
       return false;
     });
-  }, [records, searchQuery]);
+  }, [allRecords, poleFilter, uprightFilter, searchQuery]);
 
   const sortedRecords = useMemo(() => {
     const list = [...filteredRecords];
@@ -97,7 +113,12 @@ export const HistoryView: React.FC = () => {
     return list;
   }, [filteredRecords, sortColumn, sortDirection]);
 
+  const totalCount = sortedRecords.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const paginatedRecords = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return sortedRecords.slice(start, start + pageSize);
+  }, [sortedRecords, currentPage, pageSize]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -137,7 +158,7 @@ export const HistoryView: React.FC = () => {
 
         {/* Historical Telemetry Data Table */}
         <HistoryTable
-          records={sortedRecords}
+          records={paginatedRecords}
           isLoading={isLoading}
           searchQuery={searchQuery}
           sortColumn={sortColumn}

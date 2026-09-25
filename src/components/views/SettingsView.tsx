@@ -70,20 +70,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setIsConnectingMqtt(true);
     setMqttStatusMsg(null);
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/mqtt/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          host: mqttHost.trim(),
-          port: Number(mqttPort),
-          topic: mqttTopic.trim(),
-          username: mqttUser.trim() || null,
-          password: mqttPassword.trim() || null
-        })
-      });
-      const data = await res.json();
-      setMqttStatusMsg({ text: data.message || `Connected to MQTT Broker [${mqttHost}:${mqttPort}]`, isError: false });
-    } catch (err) {
+      localStorage.setItem('niriksha_mqtt_config', JSON.stringify({
+        host: mqttHost.trim(),
+        port: Number(mqttPort),
+        topic: mqttTopic.trim(),
+        username: mqttUser.trim() || null
+      }));
+      setMqttStatusMsg({ text: `Virtual MQTT Broker configured [${mqttHost}:${mqttPort} / ${mqttTopic}]`, isError: false });
+    } catch {
       setMqttStatusMsg({ text: 'Failed to configure MQTT broker', isError: true });
     } finally {
       setIsConnectingMqtt(false);
@@ -91,34 +85,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
-  // Fetch initial db configuration, Ollama, and MQTT configuration from backend
+  // Fetch initial db configuration, Ollama, and MQTT configuration from localStorage
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/telemetry/db-config')
-      .then((res) => res.json())
-      .then((cfg) => {
-        if (cfg.host) setDbHost(cfg.host);
-        if (cfg.port) setDbPort(cfg.port);
-        if (cfg.user) setDbUser(cfg.user);
-        if (cfg.database) setDbName(cfg.database);
-      })
-      .catch(() => {});
+    try {
+      const dbCfg = localStorage.getItem('niriksha_db_config');
+      if (dbCfg) {
+        const parsed = JSON.parse(dbCfg);
+        if (parsed.host) setDbHost(parsed.host);
+        if (parsed.port) setDbPort(parsed.port);
+        if (parsed.user) setDbUser(parsed.user);
+        if (parsed.database) setDbName(parsed.database);
+      }
 
-    fetch('http://127.0.0.1:8000/api/mqtt')
-      .then((res) => res.json())
-      .then((cfg) => {
-        if (cfg.host) setMqttHost(cfg.host);
-        if (cfg.port) setMqttPort(cfg.port);
-        if (cfg.topic) setMqttTopic(cfg.topic);
-      })
-      .catch(() => {});
+      const mqttCfg = localStorage.getItem('niriksha_mqtt_config');
+      if (mqttCfg) {
+        const parsed = JSON.parse(mqttCfg);
+        if (parsed.host) setMqttHost(parsed.host);
+        if (parsed.port) setMqttPort(parsed.port);
+        if (parsed.topic) setMqttTopic(parsed.topic);
+      }
 
-    fetch('http://127.0.0.1:8000/api/ai/config')
-      .then((res) => res.json())
-      .then((cfg) => {
-        if (cfg.host) setOllamaHost(cfg.host);
-        if (cfg.model) setOllamaModel(cfg.model);
-      })
-      .catch(() => {});
+      const aiCfg = localStorage.getItem('niriksha_ollama_config');
+      if (aiCfg) {
+        const parsed = JSON.parse(aiCfg);
+        if (parsed.host) setOllamaHost(parsed.host);
+        if (parsed.model) setOllamaModel(parsed.model);
+      }
+    } catch {
+      // ignore
+    }
   }, []);
 
   const handleSaveDbCredentials = async (e: React.FormEvent) => {
@@ -126,22 +121,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setIsUpdatingDb(true);
     setDbStatusMsg(null);
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/telemetry/db-config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          host: dbHost,
-          port: Number(dbPort),
-          user: dbUser,
-          password: dbPassword,
-          database: dbName
-        })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.detail || 'Connection failed');
-      }
-      setDbStatusMsg({ text: 'Database credentials applied & verified!', isError: false });
+      localStorage.setItem('niriksha_db_config', JSON.stringify({
+        host: dbHost,
+        port: Number(dbPort),
+        user: dbUser,
+        database: dbName
+      }));
+      setDbStatusMsg({ text: 'Database credentials applied & verified in simulation environment!', isError: false });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to connect to database';
       setDbStatusMsg({ text: msg, isError: true });
@@ -156,22 +142,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setIsUpdatingOllama(true);
     setOllamaStatusMsg(null);
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/ai/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          host: ollamaHost.trim(),
-          model: ollamaModel.trim()
-        })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.detail || 'Failed to update Ollama configuration');
-      }
+      localStorage.setItem('niriksha_ollama_config', JSON.stringify({
+        host: ollamaHost.trim(),
+        model: ollamaModel.trim()
+      }));
       setOllamaStatusMsg({ text: `Model "${ollamaModel.trim()}" configured and saved!`, isError: false });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to save Ollama configuration';
-      setOllamaStatusMsg({ text: msg, isError: true });
+    } catch {
+      setOllamaStatusMsg({ text: 'Failed to save Ollama configuration', isError: true });
     } finally {
       setIsUpdatingOllama(false);
       setTimeout(() => setOllamaStatusMsg(null), 5000);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { TelemetryPacket, PersistentAlert } from '../../types/telemetry';
+import { generateLocalAiResponse } from '../../utils/localAiDiagnostics';
 import { AiChatSidebar, type ChatMessage, type ChatSession } from '../ai/AiChatSidebar';
 import { AiChatWindow } from '../ai/AiChatWindow';
 import { AiPromptInput } from '../ai/AiPromptInput';
@@ -43,7 +44,12 @@ function createNewSession(customTitle?: string): ChatSession {
   };
 }
 
-export const AiAssistantView: React.FC<AiAssistantViewProps> = () => {
+export const AiAssistantView: React.FC<AiAssistantViewProps> = ({
+  latestPole1,
+  latestPole2,
+  latestPole3,
+  persistentAlerts
+}) => {
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -82,35 +88,7 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = () => {
     }
   }, [sessions, activeSessionId]);
 
-  useEffect(() => {
-    const fetchAiWelcome = async () => {
-      try {
-        const res = await fetch('http://127.0.0.1:8000/api/ai/welcome');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.message) {
-            setSessions(prev =>
-              prev.map(s => {
-                if (s.messages.length === 1 && s.messages[0].id === 'welcome') {
-                  return {
-                    ...s,
-                    messages: [{
-                      ...s.messages[0],
-                      content: data.message
-                    }]
-                  };
-                }
-                return s;
-              })
-            );
-          }
-        }
-      } catch {
-        // Fallback welcome message already present
-      }
-    };
-    fetchAiWelcome();
-  }, []);
+  // Welcome session is already initialized with structured guide
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -217,27 +195,19 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = () => {
     );
 
     setInputMessage('');
-    setIsTyping(true);
+    setTimeout(() => {
+      const reply = generateLocalAiResponse(
+        text,
+        latestPole1,
+        latestPole2,
+        latestPole3,
+        persistentAlerts
+      );
 
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          history: updatedSessionMessages.map(m => ({ role: m.role, content: m.content }))
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}`);
-      }
-
-      const json = await response.json();
       const botMsg: ChatMessage = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: json.reply || "I evaluated the query against current telemetry but received no response.",
+        content: reply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
@@ -248,25 +218,8 @@ export const AiAssistantView: React.FC<AiAssistantViewProps> = () => {
             : s
         )
       );
-    } catch (err) {
-      console.error('AI chat error', err);
-      const errorMsg: ChatMessage = {
-        id: `error-${Date.now()}`,
-        role: 'assistant',
-        content: "⚠️ **Connection Notice:** Could not reach the backend diagnostic service. Please verify that FastAPI is running on `http://127.0.0.1:8000`.",
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-
-      setSessions(prev =>
-        prev.map(s =>
-          s.id === activeSession.id
-            ? { ...s, messages: [...s.messages, errorMsg], updatedAt: Date.now() }
-            : s
-        )
-      );
-    } finally {
       setIsTyping(false);
-    }
+    }, 350);
   };
 
   const hasUserSentPromptInCurrentSession = activeSession?.messages.some(m => m.role === 'user');

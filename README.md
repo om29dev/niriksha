@@ -24,7 +24,6 @@ This branch (`simulation-demo`) contains the standalone, static browser demonstr
 To run the simulation demo locally:
 
 ```powershell
-cd frontend
 npm install
 npm run dev
 ```

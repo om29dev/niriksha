@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import type { PoleId, TelemetryPacket, PersistentAlert, PoleState } from '../types/telemetry';
 import { MarkdownContent } from './MarkdownContent';
+import { generateLocalAiResponse } from '../utils/localAiDiagnostics';
 
 interface AiAssistantDrawerProps {
   isOpen: boolean;
@@ -69,9 +70,9 @@ function createDrawerSession(customTitle?: string): ChatSession {
 export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
   isOpen,
   onClose,
-  latestPole1: _latestPole1,
-  latestPole2: _latestPole2,
-  latestPole3: _latestPole3,
+  latestPole1,
+  latestPole2,
+  latestPole3,
   persistentAlerts,
   onNavigatePole: _onNavigatePole,
   onOpenFullView
@@ -152,36 +153,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
     }
   }, [sessions, activeSessionId]);
 
-  // Dynamically fetch AI welcome greeting for fresh session
-  useEffect(() => {
-    const fetchAiWelcome = async () => {
-      try {
-        const res = await fetch('http://127.0.0.1:8000/api/ai/welcome');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.message) {
-            setSessions(prev =>
-              prev.map(s => {
-                if (s.messages.length === 1 && s.messages[0].id === 'welcome') {
-                  return {
-                    ...s,
-                    messages: [{
-                      ...s.messages[0],
-                      content: data.message
-                    }]
-                  };
-                }
-                return s;
-              })
-            );
-          }
-        }
-      } catch {
-        // Fallback welcome message already present
-      }
-    };
-    fetchAiWelcome();
-  }, []);
+  // Welcome session is already pre-configured with interactive guide
 
   // Save sessions to localStorage
   const persistSessions = (updatedSessions: ChatSession[]) => {
@@ -258,25 +230,19 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
     setInputMessage('');
     setIsTyping(true);
 
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          history: updatedSessionMessages.map(m => ({ role: m.role, content: m.content }))
-        })
-      });
+    setTimeout(() => {
+      const reply = generateLocalAiResponse(
+        text,
+        latestPole1,
+        latestPole2,
+        latestPole3,
+        persistentAlerts
+      );
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const json = await response.json();
       const botMsg: ChatMessage = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: json.reply || "Telemetry evaluated.",
+        content: reply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
@@ -290,27 +256,8 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
           : s
       );
       persistSessions(finalSessions);
-    } catch (err) {
-      console.error('Drawer AI chat error', err);
-      const botErr: ChatMessage = {
-        id: `err-${Date.now()}`,
-        role: 'assistant',
-        content: "⚠️ **Offline Rule Engine Fallback:** Ensure FastAPI is active on `http://127.0.0.1:8000`.",
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      const finalSessions = newSessions.map(s =>
-        s.id === activeSession.id
-          ? {
-              ...s,
-              messages: [...s.messages, botErr],
-              updatedAt: Date.now()
-            }
-          : s
-      );
-      persistSessions(finalSessions);
-    } finally {
       setIsTyping(false);
-    }
+    }, 350);
   };
 
   const unresolvedCount = persistentAlerts.filter(a => a.status === 'UNRESOLVED').length;

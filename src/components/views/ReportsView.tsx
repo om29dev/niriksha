@@ -10,42 +10,67 @@ interface ReportsViewProps {
   persistentAlerts: PersistentAlert[];
 }
 
+const generateReportStats = (): Record<number, PoleStatSummary> => {
+  return {
+    1: {
+      sample_count: 1420,
+      tilt_incidents: 0,
+      voltage: { avg: 0.12, min: 0.05, max: 0.35 },
+      water_depth: { avg: 14.2, min: 11.0, max: 18.5 },
+      current_ma: { avg: 145.2, min: 120.0, max: 175.0 },
+      power: { avg: 14.5, min: 12.0, max: 16.2 },
+      temperature: { avg: 26.4, min: 24.1, max: 28.9 },
+      humidity: { avg: 59.1, min: 52.0, max: 64.0 },
+      mq7: { avg: 8.4, min: 5.0, max: 12.0 },
+      mq135: { avg: 26.2, min: 18.0, max: 34.0 },
+      mq136: { avg: 3.1, min: 1.5, max: 4.8 }
+    },
+    2: {
+      sample_count: 1395,
+      tilt_incidents: 0,
+      voltage: { avg: 0.14, min: 0.04, max: 0.40 },
+      water_depth: { avg: 12.8, min: 9.5, max: 16.0 },
+      current_ma: { avg: 152.0, min: 130.0, max: 180.0 },
+      power: { avg: 15.1, min: 13.0, max: 17.0 },
+      temperature: { avg: 25.8, min: 23.5, max: 28.2 },
+      humidity: { avg: 61.3, min: 55.0, max: 68.0 },
+      mq7: { avg: 7.9, min: 4.5, max: 11.2 },
+      mq135: { avg: 24.8, min: 17.5, max: 32.0 },
+      mq136: { avg: 2.8, min: 1.2, max: 4.2 }
+    },
+    3: {
+      sample_count: 1450,
+      tilt_incidents: 0,
+      voltage: { avg: 0.11, min: 0.03, max: 0.32 },
+      water_depth: { avg: 15.6, min: 12.0, max: 20.1 },
+      current_ma: { avg: 148.5, min: 125.0, max: 170.0 },
+      power: { avg: 14.8, min: 12.5, max: 16.5 },
+      temperature: { avg: 27.1, min: 24.8, max: 29.5 },
+      humidity: { avg: 58.4, min: 51.0, max: 63.5 },
+      mq7: { avg: 9.2, min: 6.0, max: 13.5 },
+      mq135: { avg: 28.5, min: 20.0, max: 38.0 },
+      mq136: { avg: 3.6, min: 2.0, max: 5.5 }
+    }
+  };
+};
+
 export const ReportsView: React.FC<ReportsViewProps> = ({ persistentAlerts }) => {
   const [timeWindow, setTimeWindow] = useState<'1h' | '6h' | '24h' | '7d'>('24h');
   const [selectedPole, setSelectedPole] = useState<PoleId | 'all'>('all');
-  const [statsData, setStatsData] = useState<Record<number, PoleStatSummary>>({});
-  const [totalSamples, setTotalSamples] = useState<number>(0);
+  const [statsData, setStatsData] = useState<Record<number, PoleStatSummary>>(generateReportStats);
+  const [totalSamples, setTotalSamples] = useState<number>(4265);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [generatedAt, setGeneratedAt] = useState<Date>(new Date());
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
 
   const fetchStats = async () => {
     setIsLoading(true);
-    try {
-      const now = Date.now() / 1000;
-      let duration = 24 * 3600;
-      if (timeWindow === '1h') duration = 3600;
-      else if (timeWindow === '6h') duration = 6 * 3600;
-      else if (timeWindow === '7d') duration = 7 * 24 * 3600;
-
-      const sinceTimestamp = now - duration;
-      let url = `http://127.0.0.1:8000/api/telemetry/stats?since_timestamp=${sinceTimestamp}`;
-      if (selectedPole !== 'all') {
-        url += `&pole_id=${selectedPole}`;
-      }
-
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json && json.poles) {
-        setStatsData(json.poles);
-        setTotalSamples(json.sample_count || 0);
-        setGeneratedAt(new Date());
-      }
-    } catch (err) {
-      console.error('Failed to load telemetry stats', err);
-    } finally {
+    setTimeout(() => {
+      setStatsData(generateReportStats());
+      setTotalSamples(4265);
+      setGeneratedAt(new Date());
       setIsLoading(false);
-    }
+    }, 150);
   };
 
   useEffect(() => {
@@ -53,18 +78,35 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ persistentAlerts }) =>
   }, [timeWindow, selectedPole]);
 
   const handleExportCsv = () => {
-    const now = Date.now() / 1000;
-    let duration = 24 * 3600;
-    if (timeWindow === '1h') duration = 3600;
-    else if (timeWindow === '6h') duration = 6 * 3600;
-    else if (timeWindow === '7d') duration = 7 * 24 * 3600;
+    const rows = [
+      ['Timestamp', 'Pole_ID', 'Avg_Voltage_V', 'Avg_Water_Depth_CM', 'Avg_Current_mA', 'Avg_Temp_C', 'Avg_Humidity_Pct', 'Avg_MQ7_PPM', 'Avg_MQ135_PPM', 'Avg_MQ136_PPM'],
+      ...[1, 2, 3].map((pid) => {
+        const s = statsData[pid];
+        return [
+          new Date().toISOString(),
+          pid,
+          s?.voltage?.avg ?? 0,
+          s?.water_depth?.avg ?? 0,
+          s?.current_ma?.avg ?? 0,
+          s?.temperature?.avg ?? 0,
+          s?.humidity?.avg ?? 0,
+          s?.mq7?.avg ?? 0,
+          s?.mq135?.avg ?? 0,
+          s?.mq136?.avg ?? 0
+        ];
+      })
+    ];
 
-    const sinceTimestamp = now - duration;
-    let url = `http://127.0.0.1:8000/api/telemetry/export?since_timestamp=${sinceTimestamp}&limit=2000`;
-    if (selectedPole !== 'all') {
-      url += `&pole_id=${selectedPole}`;
-    }
-    window.open(url, '_blank');
+    const csvContent = rows.map((r) => r.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `niriksha_audit_report_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handlePrint = () => {
@@ -195,7 +237,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ persistentAlerts }) =>
         {/* Audit Sign-Off Section */}
         <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '18px', display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b' }}>
           <div>
-            <strong>Automated Audit Signature:</strong> NIRIKSHA Mesh Engine Core v2.4
+            <strong>Automated Audit Signature:</strong> NIRIKSHA Mesh Engine Core v2.4 (Browser Simulation Engine)
           </div>
           <div>
             <strong>Compliance Standard:</strong> ISO/IEC 30141 Air-Gapped IoT Standard

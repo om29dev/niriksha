@@ -171,9 +171,21 @@ export const PreviewNoticeBanner: React.FC<PreviewNoticeBannerProps> = ({
         </div>
 
         {/* Live Simulation Indicator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: isSimulating ? '#16a34a' : '#64748b' }}>
-          <Radio style={{ width: '14px', height: '14px', color: isSimulating ? '#16a34a' : '#94a3b8' }} />
-          <span style={{ fontWeight: '500' }}>{isSimulating ? 'Live Telemetry' : 'Simulation Paused'}</span>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '12px',
+            padding: '4px 10px',
+            borderRadius: '6px',
+            backgroundColor: isSimulating ? '#f0fdf4' : '#f8fafc',
+            border: isSimulating ? '1px solid #bbf7d0' : '1px solid #e2e8f0',
+            color: isSimulating ? '#15803d' : '#64748b'
+          }}
+        >
+          <Radio style={{ width: '13px', height: '13px', color: isSimulating ? '#16a34a' : '#94a3b8' }} />
+          <span style={{ fontWeight: '600' }}>{isSimulating ? 'Live Telemetry' : 'Simulation Paused'}</span>
         </div>
 
         {/* Start / Stop Button */}
@@ -186,23 +198,24 @@ export const PreviewNoticeBanner: React.FC<PreviewNoticeBannerProps> = ({
             backgroundColor: isSimulating ? '#ffffff' : '#2563eb',
             color: isSimulating ? '#475569' : '#ffffff',
             border: isSimulating ? '1px solid #cbd5e1' : 'none',
-            padding: '6px 14px',
+            padding: '7px 16px',
             borderRadius: '6px',
-            fontSize: '12px',
+            fontSize: '12.5px',
             fontWeight: '600',
             cursor: 'pointer',
-            boxShadow: isSimulating ? '0 1px 2px rgba(0,0,0,0.05)' : '0 1px 3px rgba(37,99,235,0.4)'
+            boxShadow: isSimulating ? '0 1px 2px rgba(0,0,0,0.05)' : '0 1px 3px rgba(37,99,235,0.4)',
+            transition: 'all 0.15s ease'
           }}
         >
           {isSimulating ? (
             <>
-              <Square style={{ width: '12px', height: '12px', color: '#64748b' }} />
+              <Square style={{ width: '12px', height: '12px', color: '#64748b', fill: '#64748b' }} />
               <span>Pause Simulation</span>
             </>
           ) : (
             <>
-              <Play style={{ width: '12px', height: '12px', fill: '#ffffff' }} />
-              <span>Resume Simulation</span>
+              <Play style={{ width: '13px', height: '13px', fill: '#ffffff' }} />
+              <span>Play Simulation</span>
             </>
           )}
         </button>

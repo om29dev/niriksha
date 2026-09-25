@@ -135,7 +135,7 @@ export default function App() {
     mq7HazardPoles,
     mq135HazardPoles,
     mq136HazardPoles
-  } = useHazardDetection(latestPole1, latestPole2, latestPole3, gasThresholds);
+  } = useHazardDetection(latestPole1, latestPole2, latestPole3, gasThresholds, isSimulating);
 
   // Effective emergencies are derived purely from real sensor telemetry
   const isEffectiveVoltageEmergency = isVoltageEmergency;
@@ -203,7 +203,7 @@ export default function App() {
     }
   }, [isEffectiveFireEmergency]);
 
-  // Fetch data for a selected historical time range (1h, 6h, 24h)
+  // Fetch or generate data for a selected historical time range (1h, 6h, 24h)
   const handleTimeRangeChange = async (range: TimeRangeOption) => {
     setTimeRange(range);
     if (range === 'realtime') {
@@ -212,23 +212,33 @@ export default function App() {
     }
 
     setIsLoadingHistory(true);
-    try {
-      const now = Date.now() / 1000;
-      let durationSeconds = 3600; // default 1 hour
-      if (range === '6h') durationSeconds = 6 * 3600;
-      else if (range === '24h') durationSeconds = 24 * 3600;
+    const now = Math.floor(Date.now() / 1000);
+    const count = range === '6h' ? 45 : range === '24h' ? 80 : 30;
+    const step = range === '24h' ? 1080 : range === '6h' ? 480 : 120;
+    const generated: TelemetryPacket[] = [];
 
-      const sinceTimestamp = now - durationSeconds;
-      const res = await fetch(`http://127.0.0.1:8000/api/telemetry/recent?limit=2000&since_timestamp=${sinceTimestamp}`);
-      const json = await res.json();
-      if (json.data && Array.isArray(json.data)) {
-        setHistoricalData(json.data);
+    for (let i = 0; i < count; i++) {
+      const ts = now - (count - i) * step;
+      for (let p = 1; p <= 3; p++) {
+        generated.push({
+          pole_id: p as 1 | 2 | 3,
+          seq: 1000 + i * 3 + p,
+          timestamp: ts,
+          is_upright: true,
+          voltage: Number((0.08 + Math.sin(i / 5 + p) * 0.04).toFixed(2)),
+          water_depth: Number((12.0 + Math.sin(i / 6 + p) * 2.5).toFixed(1)),
+          power: Number((14.0 + Math.cos(i / 4 + p) * 1.2).toFixed(1)),
+          temperature: Number((25.5 + Math.sin(i / 8 + p) * 2.0).toFixed(1)),
+          humidity: Number((58.0 + Math.cos(i / 7 + p) * 4.0).toFixed(1)),
+          mq7: Number((8.0 + Math.sin(i / 5 + p) * 1.5).toFixed(1)),
+          mq135: Number((24.0 + Math.sin(i / 6 + p) * 3.0).toFixed(1)),
+          mq136: Number((3.0 + Math.cos(i / 5 + p) * 0.8).toFixed(1)),
+          status: 'REALTIME'
+        });
       }
-    } catch (err) {
-      console.error('Failed to load time range data', err);
-    } finally {
-      setIsLoadingHistory(false);
     }
+    setHistoricalData(generated);
+    setIsLoadingHistory(false);
   };
 
   const selectedLatest = activePoleTab === 1 ? latestPole1

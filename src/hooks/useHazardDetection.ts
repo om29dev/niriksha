@@ -6,23 +6,25 @@ export function useHazardDetection(
   latestPole1: TelemetryPacket | null,
   latestPole2: TelemetryPacket | null,
   latestPole3: TelemetryPacket | null,
-  customGasThresholds?: Partial<GasThresholdConfig>
+  customGasThresholds?: Partial<GasThresholdConfig>,
+  isSimulating: boolean = true
 ) {
   const gasThresholds = { ...DEFAULT_GAS_THRESHOLDS, ...customGasThresholds };
-  // 1-second interval to keep time-since-last-packet fresh
+  // 1-second interval to keep time-since-last-packet fresh when simulation is active
   const [currentTimeSec, setCurrentTimeSec] = useState<number>(Date.now() / 1000);
 
   useEffect(() => {
+    if (!isSimulating) return;
     const timer = setInterval(() => {
       setCurrentTimeSec(Date.now() / 1000);
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isSimulating]);
 
   const getPoleState = (pkt: TelemetryPacket | null): PoleState => {
-    if (!pkt) return { isDown: false, isOffline: true, secondsSince: null };
-    const secondsSince = Math.max(0, Math.round(currentTimeSec - pkt.timestamp));
-    const isOffline = secondsSince > 7;
+    if (!pkt) return { isDown: false, isOffline: false, secondsSince: null };
+    const secondsSince = isSimulating ? Math.max(0, Math.round(currentTimeSec - pkt.timestamp)) : 0;
+    const isOffline = isSimulating ? secondsSince > 7 : false;
     const isDown = pkt.is_upright === false;
     return { isDown, isOffline, secondsSince };
   };
