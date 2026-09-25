@@ -40,20 +40,20 @@ jobs:
 
       - name: Generate OpenAPI spec and Swagger UI bundle
         run: |
-          python scripts/generate_api_docs.py ./dist_docs
+          python scripts/generate_api_docs.py /tmp/dist_docs
 
       - name: Update docs in live-demo branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Fetch and checkout live-demo
-          git fetch origin live-demo:live-demo
-          git checkout live-demo
+          # Clean any __pycache__ or temporary files before checking out
+          git clean -fdX
+          git checkout -B live-demo origin/live-demo
           
           # Copy newly generated docs into public/docs/
           mkdir -p public/docs
-          cp -r ./dist_docs/* public/docs/
+          cp -r /tmp/dist_docs/* public/docs/
           
           git add public/docs
           if git diff --staged --quiet; then
@@ -65,13 +65,12 @@ jobs:
 
       - name: Update docs directly on gh-pages branch (/docs subpath)
         run: |
-          # Fetch and checkout gh-pages
-          git fetch origin gh-pages:gh-pages
-          git checkout gh-pages
+          git clean -fdX
+          git checkout -B gh-pages origin/gh-pages
           
           # Copy newly generated docs into docs/
           mkdir -p docs
-          cp -r ./dist_docs/* docs/
+          cp -r /tmp/dist_docs/* docs/
           
           git add docs
           if git diff --staged --quiet; then
@@ -83,12 +82,11 @@ jobs:
 
       - name: Update dedicated docs-pages branch
         run: |
-          # Fetch and checkout docs-pages
-          git fetch origin docs-pages:docs-pages
-          git checkout docs-pages
+          git clean -fdX
+          git checkout -B docs-pages origin/docs-pages
           
           # Copy newly generated docs into root of docs-pages
-          cp -r ./dist_docs/* ./
+          cp -r /tmp/dist_docs/* ./
           
           git add -A
           if git diff --staged --quiet; then
