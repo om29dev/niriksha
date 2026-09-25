@@ -60,4 +60,5 @@ logs/
 *.log
 backend/data/ai_logs/*.md
 !backend/data/ai_logs/.gitkeep
-
+# Generated Docs Build Artifacts
+api_docs_dist/
