@@ -30,7 +30,7 @@
    - Use `requestAnimationFrame` to throttle canvas/SVG rendering from raw high-frequency WebSocket packet rates to eliminate canvas/SVG lag during continuous 24/7 uptime.
 
 6. **Multi-Node Mesh Telemetry & Unified Sensor Schema**
-   - Microcontroller `.ino` sketches in `lastlocal/` are read-only and must never be altered directly by agents unless explicitly directed.
+   - Microcontroller `.ino` sketches in `firmware/` (`pole1_sensor_node/`, `pole2_sensor_node/`, `pole3_gateway_hub/`) are read-only and must never be altered directly by agents unless explicitly directed.
    - All poles (Pole 1, Pole 2, Pole 3) transmit into the Root Hub (Pole 3) and are parsed into a **unified sensor schema**.
    - Every telemetry packet emitted over WebSockets and saved to PostgreSQL provides the complete sensor suite (`temperature`, `humidity`, `water_depth`, `is_upright`, `voltage`, `current_ma`, `power`, `energy`, `frequency`, `pf`).
    - If a pole does not physically carry or activate a specific sensor (e.g. DHT11 on Pole 1 & 2, or PZEM/Ultrasonic on Pole 3), its status in `sensors` MUST be explicitly set to `"NOT_CONNECTED"` and its numerical value to `null`/`None`.

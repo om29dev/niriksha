@@ -207,3 +207,10 @@ NIRIKSHA implements a scalable search dropdown:
 - Features instant real-time text filtering by Pole ID or location name.
 - Displays quick-glance status chips (`ONLINE`, `OFFLINE`, `CRITICAL`) directly inside the dropdown menu items.
 - Retains quick-access chips for the first 3 primary poles while providing the scalable selector for the entire network.
+
+---
+
+## 6. Modular Component Directory Reference
+
+For the comprehensive catalog and responsibility breakdown of all 12 frontend subcomponent packages (`ai/`, `alerts/`, `charts/`, `compare/`, `dashboard/`, `fleet/`, `history/`, `map/`, `modals/`, `reports/`, `settings/`, `views/`), see [09. Modular Architecture & Component Reference](file:///d:/proj/SIH/docs/09_MODULAR_COMPONENTS.md).
+

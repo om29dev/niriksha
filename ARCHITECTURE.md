@@ -1,6 +1,6 @@
-# Engineering Architecture Reference: NIRIKSHA IoT Platform
+# Architecture Reference: NIRIKSHA Environmental Intelligence Network
 
-NIRIKSHA is an offline-first, laboratory-grade smart IoT mesh telemetry and municipal hazard monitoring platform. This document serves as the high-level technical architecture reference for systems engineers, outlining the end-to-end data pipeline, dual-protocol telemetry ingestion, algorithmic signal processing, asynchronous database buffering, and frontend rendering pipeline.
+NIRIKSHA is an offline-capable, distributed environmental intelligence and hazard monitoring platform. This document serves as the high-level technical architecture reference, outlining the end-to-end telemetry pipeline: distributed wireless mesh sensor nodes, dual-protocol ingestion (UART/MQTT), local algorithmic signal conditioning (Kalman filtering, EWMA anomaly detection, hazard fusion), asynchronous database persistence, and real-time dashboard rendering.
 
 For detailed subsystem documentation, refer to the [Technical Documentation Hub](file:///d:/proj/SIH/docs/README.md).
 
@@ -161,9 +161,9 @@ fanout.ws_hub -> client: "WebSocket /ws/telemetry" {
 
 ---
 
-## 2. Layered Modular Architecture & < 200 Lines Constraint
+## 2. Layered Modular Architecture
 
-In accordance with strict production guidelines, every module in `backend/` and `frontend/` is designed with single responsibility and strictly contains fewer than 200 lines of code.
+Every module across the backend and frontend enforces single responsibility and clear separation of concerns:
 
 ```
 SIH/
@@ -295,3 +295,4 @@ For complete technical specifications, consult the dedicated documentation chapt
 - **[06. Frontend & Dashboard](file:///d:/proj/SIH/docs/06_FRONTEND_AND_DASHBOARD.md)**: React 19 architecture, 60fps RAF throttling, sliding window buffer, and procedural Web Audio sirens.
 - **[07. AI Diagnostics Engine](file:///d:/proj/SIH/docs/07_AI_DIAGNOSTICS_ENGINE.md)**: Deterministic heuristic safety rules, Ollama local LLM runtime, and dynamic telemetry injection.
 - **[08. Operations & Runbook](file:///d:/proj/SIH/docs/08_OPERATIONS_AND_RUNBOOK.md)**: PowerShell CLI (`manage.ps1`), port mappings, configuration, and troubleshooting runbooks.
+- **[09. Modular Architecture](file:///d:/proj/SIH/docs/09_MODULAR_COMPONENTS.md)**: Frontend and backend component hierarchy, sub-file directory breakdown, and single-responsibility guidelines.

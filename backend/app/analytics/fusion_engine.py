@@ -77,11 +77,12 @@ class MultiSensorFusionEngine:
         elec_risk = self.compute_electrocution_risk(volt, depth)
         packet["electrocution_risk_index"] = elec_risk
         if elec_risk >= 70.0 or (volt is not None and volt > 5.0):
+            volt_str = f"{volt:.1f}V" if volt is not None else "Unknown V"
             alerts_to_raise.append({
                 "pole_id": pole_id,
                 "alert_type": "voltage_surge",
                 "severity": "critical",
-                "title": f"Lethal Electrocution Potential ({volt:.1f}V | Risk: {elec_risk}%)",
+                "title": f"Lethal Electrocution Potential ({volt_str} | Risk: {elec_risk}%)",
                 "description": "Electrification potential in street water exceeds safety threshold.",
                 "trigger_value": float(volt) if volt is not None else 0.0,
                 "unit": "V"
@@ -90,12 +91,13 @@ class MultiSensorFusionEngine:
         # 2. Fire & Thermal Combustion Index
         fire_index = self.compute_fire_combustion_index(temp, mq7, mq2)
         packet["fire_combustion_index"] = fire_index
+        temp_str = f"{temp:.1f}°C" if temp is not None else "Unknown °C"
         if fire_index >= 75.0 or (temp is not None and temp >= 60.0):
             alerts_to_raise.append({
                 "pole_id": pole_id,
                 "alert_type": "fire_emergency",
                 "severity": "critical",
-                "title": f"Extreme Fire Outbreak ({temp:.1f}°C | Index: {fire_index}%)",
+                "title": f"Extreme Fire Outbreak ({temp_str} | Index: {fire_index}%)",
                 "description": "Blaze signature confirmed via thermal and gas sensor fusion.",
                 "trigger_value": float(temp) if temp is not None else 0.0,
                 "unit": "°C"

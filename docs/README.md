@@ -1,8 +1,8 @@
-# NIRIKSHA Engineering Documentation Hub
+# NIRIKSHA Technical Documentation Hub
 
-Welcome to the technical documentation repository for **NIRIKSHA**, an offline-first, laboratory-grade smart IoT mesh telemetry and municipal hazard monitoring platform.
+Welcome to the technical documentation repository for **NIRIKSHA**, a distributed, edge-assisted environmental intelligence and multi-hazard monitoring platform.
 
-This documentation suite is written by systems engineers for systems engineers. It details the complete physical-to-digital telemetry pipeline: from ESP32 firmware running painlessMesh on the street poles, through dual-protocol hardware ingestion and mathematical signal filtering in Python/FastAPI, to asynchronous PostgreSQL batch persistence and real-time React visualization.
+This documentation suite details the end-to-end telemetry and hazard detection pipeline: from ESP32 mesh sensor nodes deployed in the field, through dual-protocol hardware ingestion (UART/MQTT) and mathematical signal conditioning in Python/FastAPI, to asynchronous PostgreSQL batch persistence and real-time React visualization.
 
 ---
 
@@ -20,12 +20,13 @@ The documentation is organized into focused, modular technical chapters:
 | [06. Frontend & Dashboard](file:///d:/proj/SIH/docs/06_FRONTEND_AND_DASHBOARD.md) | Client Architecture | React 19 + TypeScript, 60 FPS Throttling via requestAnimationFrame, Sliding Window State, Web Audio Siren Synthesis, Air-Gap Styling |
 | [07. AI Diagnostics Engine](file:///d:/proj/SIH/docs/07_AI_DIAGNOSTICS_ENGINE.md) | Offline Machine Reasoning | Deterministic Heuristic Safety Engine, Local Ollama LLM Runtime, Dynamic Telemetry Injection, System Prompts |
 | [08. Operations & Runbook](file:///d:/proj/SIH/docs/08_OPERATIONS_AND_RUNBOOK.md) | System Management & Ops | PowerShell CLI (`manage.ps1`), Environment Configurations, Port Allocations, Startup/Debug Workflows, Troubleshooting |
+| [09. Modular Architecture](file:///d:/proj/SIH/docs/09_MODULAR_COMPONENTS.md) | Component Hierarchy & Guidelines | Subcomponents by Domain, Single Responsibility (<200 Lines), Clean Air-Gap Patterns |
 
 ---
 
 ## 🏗️ Standardized Repository Layout
 
-The codebase enforces strict separation of concerns, single-responsibility modules, and an architectural constraint where no source code file exceeds 200 lines. The workspace layout is standardized as follows:
+The codebase enforces strict separation of concerns and single-responsibility modules. The workspace layout is organized as follows:
 
 ```
 SIH/
@@ -66,13 +67,13 @@ SIH/
 │   │   │   └── ollama_system_prompt.md # Industrial telemetry prompt with dynamic slot injection
 │   │   ├── connection_manager.py       # Thread-safe WebSocket connection registry & broadcaster
 │   │   └── schemas.py                  # Shared Pydantic data schemas
-│   ├── database.py                     # Backward-compatibility facade for db connection
-│   ├── serial_manager.py               # Backward-compatibility facade for serial manager
-│   ├── mock_simulator.py               # Deprecation stub enforcing zero-mock directive
+│   ├── tests/                          # Automated pytest verification suite
+│   ├── data/                           # AI conversation history and data logs
 │   ├── main.py                         # Application entry point & FastAPI lifespan manager
 │   ├── init_postgres.py                # Standalone database initialization script
 │   ├── clean_db.py                     # Standalone maintenance / wipe script
-│   └── requirements.txt                # Pinned Python package dependencies
+│   ├── requirements.txt                # Pinned Python package dependencies
+│   └── README.md                       # Backend architectural guide
 │
 ├── frontend/                           # React 19 + Vite + TypeScript web dashboard
 │   ├── src/                            # Source root
@@ -106,7 +107,14 @@ SIH/
 │   │   ├── index.css                   # Laboratory-grade light theme variables and reset rules
 │   │   └── App.css                     # Component layout styling
 │   ├── package.json                    # Node dependencies and build scripts
-│   └── vite.config.ts                  # Vite bundler configuration
+│   ├── vite.config.ts                  # Vite bundler configuration
+│   └── README.md                       # Frontend architectural guide
+│
+├── firmware/                           # Microcontroller C++ sketches (Read-Only Reference)
+│   ├── pole1_sensor_node/              # Pole 1 firmware: Ultrasonic, ZMPT101B, Tilt, MQ array
+│   ├── pole2_sensor_node/              # Pole 2 firmware: PZEM-004T, Tilt, MQ array
+│   ├── pole3_gateway_hub/              # Pole 3 firmware: Root Gateway Hub & Serial Transmit
+│   └── README.md                       # Embedded hardware and flashing documentation
 │
 ├── docs/                               # Comprehensive technical documentation suite
 │   ├── README.md                       # This index & navigation matrix
@@ -117,12 +125,8 @@ SIH/
 │   ├── 05_DATABASE_AND_STORAGE.md      # PostgreSQL time-series schema, asyncpg batch buffering
 │   ├── 06_FRONTEND_AND_DASHBOARD.md    # React 19 architecture, 60fps rendering, audio siren
 │   ├── 07_AI_DIAGNOSTICS_ENGINE.md     # Offline AI reasoning, deterministic heuristics, Ollama
-│   └── 08_OPERATIONS_AND_RUNBOOK.md    # Management script (`manage.ps1`), deployment, troubleshooting
-│
-├── lastlocal/                          # Microcontroller C++ sketches (Read-Only Reference)
-│   ├── mk_pole1_mesh_lastlocal_done/   # Pole 1 firmware: Ultrasonic, ZMPT101B, Tilt, MQ array
-│   ├── mk_pole2_mesh_lastlocal_done/   # Pole 2 firmware: PZEM-004T, Tilt, MQ array
-│   └── mk_pole3_mesh_lastlocal_done/   # Pole 3 firmware: Root Gateway Hub & Serial Transmit
+│   ├── 08_OPERATIONS_AND_RUNBOOK.md    # Management script (`manage.ps1`), deployment, troubleshooting
+│   └── 09_MODULAR_COMPONENTS.md        # Modular component reference & design principles
 │
 ├── logs/                               # Runtime log files (backend.log, frontend.log)
 ├── manage.ps1                          # Unified PowerShell orchestration CLI for all services

@@ -1,6 +1,6 @@
 # 01. System Architecture & Topology
 
-NIRIKSHA is an industrial-grade, offline-first smart city IoT mesh telemetry and hazard monitoring platform. The system is engineered to operate in harsh municipal environments, air-gapped emergency response centers, and municipal field stations where external cloud connectivity is unavailable or compromised.
+NIRIKSHA is an offline-capable, distributed environmental intelligence and hazard monitoring platform. The system is engineered to provide continuous situational awareness across disaster-prone areas, urban corridors, and industrial zones where public cloud or cellular networks may be disrupted during extreme weather events.
 
 ---
 
@@ -234,9 +234,9 @@ The table below traces a telemetry metric from physical transducer conversion to
 
 | Stage | Subsystem | File Reference | Latency | Primary Responsibility |
 | :--- | :--- | :--- | :--- | :--- |
-| **1. Transduction** | Microcontroller Hardware | `lastlocal/mk_pole1/` | < 1 ms | Analog sensor sampling (ADC 12-bit) and timer interrupts. |
-| **2. Mesh Routing** | painlessMesh 2.4GHz RF | `lastlocal/mk_pole1/` | 15–40 ms | ESP-NOW wireless mesh routing with staggered transmission. |
-| **3. Hub Serializing**| ESP32 Gateway Node | `lastlocal/mk_pole3/` | 2 ms | Root sink JSON encapsulation and UART TX (`MESH_JSON:`). |
+| **1. Transduction** | Microcontroller Hardware | `firmware/pole1_sensor_node/` | < 1 ms | Analog sensor sampling (ADC 12-bit) and timer interrupts. |
+| **2. Mesh Routing** | painlessMesh 2.4GHz RF | `firmware/pole1_sensor_node/` | 15–40 ms | ESP-NOW wireless mesh routing with staggered transmission. |
+| **3. Hub Serializing**| ESP32 Gateway Node | `firmware/pole3_gateway_hub/` | 2 ms | Root sink JSON encapsulation and UART TX (`MESH_JSON:`). |
 | **4. Host Ingestion** | PySerial / aiomqtt | `app/protocols/` | 1–5 ms | Non-blocking line reading, frame stripping, payload decoding. |
 | **5. Normalization** | Schema Normalizer | `app/protocols/normalizer.py`| < 0.5 ms | Schema alignment, inactive sensor `NOT_CONNECTED` flagging. |
 | **6. Signal Filtering**| 1D Kalman Filter | `app/analytics/kalman.py` | < 0.2 ms | Process noise rejection on analog ADC and ultrasonic depth. |

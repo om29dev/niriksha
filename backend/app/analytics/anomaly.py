@@ -1,5 +1,5 @@
 import math
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict, Tuple, Any
 
 
 class StreamingEWMA:
@@ -72,8 +72,12 @@ class AnomalyDetectorBank:
         ewma = self.ewma_models[key]
         cusum = self.cusum_models[key]
 
+        # Evaluate candidate sample against existing baseline
+        prior_mean = ewma.mean if ewma.mean is not None else value
+        prior_std = math.sqrt(max(ewma.variance, 1e-4)) if ewma.count > 0 else 1.0
+        z_score = (value - prior_mean) / prior_std if prior_std > 0 else 0.0
+
         mean, std = ewma.update(value)
-        z_score = (value - mean) / std if std > 0 else 0.0
         drift_detected, drift_type = cusum.update(z_score)
 
         # Flag an anomaly if instantaneous z-score exceeds 3.0 sigma or CUSUM triggers

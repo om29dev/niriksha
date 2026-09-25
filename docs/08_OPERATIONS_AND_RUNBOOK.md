@@ -245,3 +245,15 @@ To re-initialize tables and verify indexes:
 ```powershell
 python backend/init_postgres.py
 ```
+
+### 5.4 Microcontroller Firmware Flashing
+**Symptom**: Node fails to join mesh or does not transmit telemetry frames.
+**Remedy**:
+1. Connect ESP32 to programming workstation via USB cable.
+2. Open the corresponding sketch from `firmware/`:
+   - **Pole 1 (Flood & Voltage):** [pole1_sensor_node.ino](file:///d:/proj/SIH/firmware/pole1_sensor_node/pole1_sensor_node.ino)
+   - **Pole 2 (Grid & Power):** [pole2_sensor_node.ino](file:///d:/proj/SIH/firmware/pole2_sensor_node/pole2_sensor_node.ino)
+   - **Pole 3 (Root Gateway):** [pole3_gateway_hub.ino](file:///d:/proj/SIH/firmware/pole3_gateway_hub/pole3_gateway_hub.ino)
+3. Ensure required libraries (`painlessMesh`, `ArduinoJson`, `PZEM004Tv30`) are installed in Arduino IDE.
+4. Verify board is set to `ESP32 Dev Module` and flash at 921600 baud. For detailed pinouts, see [Firmware Documentation](file:///d:/proj/SIH/firmware/README.md).
+

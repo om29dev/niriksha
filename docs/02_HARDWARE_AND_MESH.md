@@ -195,4 +195,4 @@ MESH_JSON:{"pole_id":2,"voltage":231.4,"current":4.21,"power":965.8,"energy":14.
 ```
 
 ### Critical Architecture Note on Firmware Directory
-The C++ sketches located inside `lastlocal/` (`mk_pole1_mesh_lastlocal_done`, `mk_pole2_mesh_lastlocal_done`, and `mk_pole3_mesh_lastlocal_done`) represent verified, flashed embedded images. They are **read-only** reference code and must never be modified by automated backend or frontend refactoring processes.
+The C++ sketches located inside `firmware/` (`pole1_sensor_node`, `pole2_sensor_node`, and `pole3_gateway_hub`) represent verified, flashed embedded images. They are **read-only** reference code and must never be modified by automated backend or frontend refactoring processes. For hardware wiring diagrams and flashing guidelines, see [Firmware Documentation](file:///d:/proj/SIH/firmware/README.md).

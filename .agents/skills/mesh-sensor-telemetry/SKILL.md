@@ -7,7 +7,7 @@ description: >-
 
 # Microcontroller Mesh & Sensor Telemetry Skill
 
-This skill documents the hardware sensor suite, painlessMesh RF topology, C++ microcontroller firmware conventions in `lastlocal/`, and the packet parsing rules for the NIRIKSHA IoT monitoring system.
+This skill documents the hardware sensor suite, painlessMesh RF topology, C++ microcontroller firmware conventions in `firmware/`, and the packet parsing rules for the NIRIKSHA IoT monitoring system.
 
 ---
 
@@ -30,7 +30,7 @@ This skill documents the hardware sensor suite, painlessMesh RF topology, C++ mi
 ```
 
 ### Critical Rule: Firmware Read-Only Guardrail
-Microcontroller `.ino` sketches located inside [lastlocal/](file:///d:/proj/SIH/lastlocal/) represent verified physical hardware builds and **must never be modified** by automated agents unless explicitly requested by the user.
+Microcontroller `.ino` sketches located inside [firmware/](file:///d:/proj/SIH/firmware/) represent verified physical hardware builds and **must never be modified** by automated agents unless explicitly requested by the user.
 
 ---
 

@@ -1,3 +1,8 @@
+---
+trigger: model_decision
+description: Dont follow this rule for documentation
+---
+
 # Code Quality, File Limits, and Production Standards
 
 ## Strict File Size Constraint (< 200 Lines)

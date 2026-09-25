@@ -32,22 +32,27 @@ async def init_db() -> asyncpg.Pool:
     global _pool
     from app.db.schema import create_tables_and_indexes
 
-    logger.info(f"Connecting to PostgreSQL at {settings.DB_USER}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}")
-    _pool = await asyncpg.create_pool(
-        host=settings.DB_HOST,
-        port=settings.DB_PORT,
-        user=settings.DB_USER,
-        password=settings.DB_PASSWORD,
-        database=settings.DB_NAME,
-        min_size=settings.DB_MIN_POOL,
-        max_size=settings.DB_MAX_POOL,
-        command_timeout=60
-    )
+    try:
+        logger.info(f"Connecting to PostgreSQL at {settings.DB_USER}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}")
+        _pool = await asyncpg.create_pool(
+            host=settings.DB_HOST,
+            port=settings.DB_PORT,
+            user=settings.DB_USER,
+            password=settings.DB_PASSWORD,
+            database=settings.DB_NAME,
+            min_size=settings.DB_MIN_POOL,
+            max_size=settings.DB_MAX_POOL,
+            command_timeout=10
+        )
 
-    async with _pool.acquire() as conn:
-        await create_tables_and_indexes(conn)
-
-    return _pool
+        async with _pool.acquire() as conn:
+            await create_tables_and_indexes(conn)
+        logger.info("PostgreSQL connection pool initialized and schema verified.")
+        return _pool
+    except Exception as e:
+        logger.warning(f"PostgreSQL not reachable ({e}). Operating in memory/live broadcast fallback mode.")
+        _pool = None
+        return None
 
 
 async def close_db():

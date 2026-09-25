@@ -186,7 +186,7 @@ export default function App() {
       else if (range === '24h') durationSeconds = 24 * 3600;
 
       const sinceTimestamp = now - durationSeconds;
-      const res = await fetch(`http://127.0.0.1:8000/api/telemetry/recent?limit=500&since_timestamp=${sinceTimestamp}`);
+      const res = await fetch(`http://127.0.0.1:8000/api/telemetry/recent?limit=2000&since_timestamp=${sinceTimestamp}`);
       const json = await res.json();
       if (json.data && Array.isArray(json.data)) {
         setHistoricalData(json.data);
