@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NIRIKSHA API Documentation</title>
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <title>NIRIKSHA - Interactive API Documentation & Schema</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./favicon.png" />
+  <link rel="apple-touch-icon" href="./niriksha-logo.png" />
   <link rel="stylesheet" type="text/css" href="./swagger-ui.css">
   <style>
     body {
@@ -24,15 +26,17 @@
     .brand-title {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       color: #ffffff;
       font-weight: 700;
       font-size: 1.15rem;
       text-decoration: none;
     }
     .brand-title img {
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      object-fit: contain;
     }
     .badge {
       background: #2563eb;
@@ -67,7 +71,7 @@
 <body>
   <div class="topbar-wrapper">
     <a href="https://om29dev.github.io/niriksha/" class="brand-title">
-      <img src="./favicon.svg" alt="NIRIKSHA">
+      <img src="./niriksha-logo.png" alt="NIRIKSHA">
       <span>NIRIKSHA</span>
       <span class="badge">API Reference</span>
     </a>
