@@ -12,7 +12,9 @@ import {
   MapPin,
   FileText,
   History,
-  Bot
+  Bot,
+  BookOpen,
+  ExternalLink
 } from 'lucide-react';
 import type { PoleId } from '../types/telemetry';
 import nirikshaLogo from '../assets/niriksha-logo.png';
@@ -338,6 +340,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           );
         })}
+
+        {/* External Link to FastAPI Docs */}
+        <a
+          href="/niriksha/docs/"
+          target="_blank"
+          rel="noopener noreferrer"
+          title={collapsed ? "FastAPI Docs (/niriksha/docs)" : undefined}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: collapsed ? 'center' : 'space-between',
+            padding: collapsed ? '10px 0' : '9px 12px',
+            borderRadius: '8px',
+            color: '#64748b',
+            backgroundColor: 'transparent',
+            textDecoration: 'none',
+            fontSize: '13px',
+            fontWeight: '500',
+            marginTop: '4px',
+            border: '1px dashed #cbd5e1',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#eff6ff';
+            e.currentTarget.style.color = '#2563eb';
+            e.currentTarget.style.borderColor = '#93c5fd';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = '#64748b';
+            e.currentTarget.style.borderColor = '#cbd5e1';
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <BookOpen style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+            {!collapsed && <span>FastAPI Docs</span>}
+          </div>
+          {!collapsed && <ExternalLink style={{ width: '13px', height: '13px', color: '#94a3b8' }} />}
+        </a>
       </nav>
 
       {/* System Status Footer Box */}

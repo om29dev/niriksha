@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - simulation-demo
+      - live-demo
   workflow_dispatch:
 
 permissions:
@@ -17,7 +18,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout simulation-demo branch
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node

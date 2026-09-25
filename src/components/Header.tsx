@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, Bell, AlertTriangle, WifiOff, CheckCircle2, ChevronRight, Sparkles } from 'lucide-react';
+import { Activity, Bell, AlertTriangle, WifiOff, CheckCircle2, ChevronRight, Sparkles, BookOpen } from 'lucide-react';
 import type { PoleId } from '../types/telemetry';
 import type { ActiveView } from './Sidebar';
 
@@ -125,6 +125,42 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right Corner Buttons: AI Assistant + Alerts */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <a
+          href="/niriksha/docs/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 14px',
+            borderRadius: '8px',
+            border: '1px solid #e2e8f0',
+            backgroundColor: '#ffffff',
+            color: '#334155',
+            fontSize: '13px',
+            fontWeight: '600',
+            textDecoration: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#f8fafc';
+            e.currentTarget.style.borderColor = '#cbd5e1';
+            e.currentTarget.style.color = '#0f172a';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#ffffff';
+            e.currentTarget.style.borderColor = '#e2e8f0';
+            e.currentTarget.style.color = '#334155';
+          }}
+          title="Open FastAPI Interactive API Documentation (/niriksha/docs)"
+        >
+          <BookOpen style={{ width: '15px', height: '15px', color: '#64748b' }} />
+          <span>API Docs</span>
+        </a>
+
         {onOpenAi && (
           <button
             onClick={onOpenAi}
