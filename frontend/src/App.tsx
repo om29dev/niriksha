@@ -19,6 +19,8 @@ import { HistoryView } from './components/views/HistoryView';
 import { AiAssistantView } from './components/views/AiAssistantView';
 import { AiAssistantDrawer } from './components/AiAssistantDrawer';
 import { DEFAULT_GAS_THRESHOLDS, type GasThresholdConfig } from './constants/gasThresholds';
+import { PreviewNoticeBanner } from './components/PreviewNoticeBanner';
+import { useSimulationRunner } from './hooks/useSimulationRunner';
 
 export default function App() {
   const [activeView, setActiveView] = useState<ActiveView>('dashboard');
@@ -84,8 +86,39 @@ export default function App() {
     packetRate,
     scanPorts,
     handleConfigUpdate,
-    handleResetData
+    handleResetData,
+    setTelemetryHistory,
+    setLatestPole1,
+    setLatestPole2,
+    setLatestPole3,
+    setLatestAny
   } = useWebSocketTelemetry(handleWsAlertEvent);
+
+  // Simulation Runner for interactive demo on preview site
+  const {
+    isSimulating,
+    scenario: activeScenario,
+    toggleSimulation,
+    selectScenario
+  } = useSimulationRunner({
+    onPacketEmitted: (packet: TelemetryPacket) => {
+      setLatestAny(packet);
+      if (packet.pole_id === 1) setLatestPole1(packet);
+      else if (packet.pole_id === 2) setLatestPole2(packet);
+      else if (packet.pole_id === 3) setLatestPole3(packet);
+
+      setTelemetryHistory((prev) => [...prev, packet].slice(-90));
+    },
+    onAlertEmitted: (packet: TelemetryPacket) => {
+      if (handleWsAlertEvent) {
+        handleWsAlertEvent({
+          type: 'HAZARD_ALERT',
+          pole_id: packet.pole_id,
+          message: packet.alert_message
+        });
+      }
+    }
+  });
 
   // Multi-pole hazard and pole status detection hook with distinct gas thresholds
   const {
@@ -217,9 +250,18 @@ export default function App() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a' }}>
-      {/* Sidebar Navigation */}
-      <Sidebar
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a' }}>
+      {/* Top Preview Notice & Simulation Scenario Control Banner */}
+      <PreviewNoticeBanner
+        isSimulating={isSimulating}
+        activeScenario={activeScenario}
+        onToggleSimulation={toggleSimulation}
+        onSelectScenario={selectScenario}
+      />
+
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        {/* Sidebar Navigation */}
+        <Sidebar
         activeView={activeView}
         setActiveView={setActiveView}
         collapsed={sidebarCollapsed}
@@ -440,18 +482,19 @@ export default function App() {
         }}
       />
 
-      {/* Global Right Corner AI Assistant Drawer */}
-      <AiAssistantDrawer
-        isOpen={aiDrawerOpen}
-        onClose={() => setAiDrawerOpen(false)}
-        latestPole1={latestPole1}
-        latestPole2={latestPole2}
-        latestPole3={latestPole3}
-        persistentAlerts={persistentAlerts}
-        poleStateMap={poleStateMap}
-        onNavigatePole={handleSelectPoleFromOtherViews}
-        onOpenFullView={() => setActiveView('ai')}
-      />
+        {/* Global Right Corner AI Assistant Drawer */}
+        <AiAssistantDrawer
+          isOpen={aiDrawerOpen}
+          onClose={() => setAiDrawerOpen(false)}
+          latestPole1={latestPole1}
+          latestPole2={latestPole2}
+          latestPole3={latestPole3}
+          persistentAlerts={persistentAlerts}
+          poleStateMap={poleStateMap}
+          onNavigatePole={handleSelectPoleFromOtherViews}
+          onOpenFullView={() => setActiveView('ai')}
+        />
+      </div>
     </div>
   );
 }

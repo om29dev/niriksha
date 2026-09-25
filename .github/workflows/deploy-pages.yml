@@ -3,7 +3,7 @@ name: Build and Deploy Demo Site to gh-pages
 on:
   push:
     branches:
-      - main
+      - simulation-demo
   schedule:
     - cron: '0 0 * * 0'
   workflow_dispatch:
@@ -22,7 +22,7 @@ jobs:
       run:
         working-directory: ./frontend
     steps:
-      - name: Checkout main branch
+      - name: Checkout simulation-demo branch
         uses: actions/checkout@v4
 
       - name: Setup Node
