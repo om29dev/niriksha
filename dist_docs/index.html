@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NIRIKSHA API Documentation</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" type="text/css" href="./swagger-ui.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .topbar-wrapper {
+      background: #0f172a;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 1.15rem;
+      text-decoration: none;
+    }
+    .brand-title img {
+      width: 24px;
+      height: 24px;
+    }
+    .badge {
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .topbar-links {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .topbar-link {
+      color: #94a3b8;
+      font-size: 0.88rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    .topbar-link:hover {
+      color: #ffffff;
+    }
+    .swagger-ui .topbar { display: none !important; }
+    .swagger-ui .info { margin: 24px 0 16px 0; }
+    .swagger-ui .info .title { font-family: inherit; color: #0f172a; }
+  </style>
+</head>
+<body>
+  <div class="topbar-wrapper">
+    <a href="https://om29dev.github.io/niriksha/" class="brand-title">
+      <img src="./favicon.svg" alt="NIRIKSHA">
+      <span>NIRIKSHA</span>
+      <span class="badge">API Reference</span>
+    </a>
+    <div class="topbar-links">
+      <a href="https://om29dev.github.io/niriksha/" class="topbar-link">Interactive Live Demo</a>
+      <a href="https://github.com/om29dev/niriksha" class="topbar-link" target="_blank" rel="noopener">GitHub Repo</a>
+      <a href="./openapi.json" class="topbar-link" download>Download OpenAPI JSON</a>
+    </div>
+  </div>
+  <div id="swagger-ui"></div>
+  <script src="./swagger-ui-bundle.js"></script>
+  <script src="./swagger-ui-standalone-preset.js"></script>
+  <script>
+    window.onload = function() {
+      window.ui = SwaggerUIBundle({
+        url: "./openapi.json",
+        dom_id: "#swagger-ui",
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout"
+      });
+    };
+  </script>
+</body>
+</html>
