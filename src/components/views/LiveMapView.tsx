@@ -50,13 +50,19 @@ export const LiveMapView: React.FC<LiveMapViewProps> = ({
     const st = poleStateMap ? poleStateMap[poleId] : null;
     const pkt = packets ? packets[poleId] : null;
     if (st?.isDown || pkt?.is_upright === false) {
-      return { label: 'TILT / COLLAPSED', color: '#dc2626', bg: '#fef2f2', border: '#fca5a5' };
+      return { label: 'TILT / TOPPLED', color: '#dc2626', bg: '#fef2f2', border: '#fca5a5' };
     }
     if ((pkt?.voltage || 0) > 5.0) {
-      return { label: 'VOLTAGE SURGE', color: '#dc2626', bg: '#fef2f2', border: '#fca5a5' };
+      return { label: 'VOLTAGE LEAK SURGE', color: '#dc2626', bg: '#fef2f2', border: '#fca5a5' };
+    }
+    if ((pkt?.temperature || 0) >= 60.0 || (pkt?.fire_combustion_index || 0) >= 70) {
+      return { label: 'FIRE / THERMAL ALERT', color: '#ea580c', bg: '#fff7ed', border: '#fdba74' };
     }
     if ((pkt?.water_depth || 0) > 100) {
-      return { label: 'FLOOD INUNDATION', color: '#d97706', bg: '#fffbeb', border: '#fde68a' };
+      return { label: 'FLOOD INUNDATION', color: '#0284c7', bg: '#f0f9ff', border: '#bae6fd' };
+    }
+    if ((pkt?.mq7 || 0) > 50 || (pkt?.mq135 || 0) > 150 || (pkt?.mq136 || 0) > 15) {
+      return { label: 'TOXIC GAS SPIKE', color: '#7c3aed', bg: '#faf5ff', border: '#d8b4fe' };
     }
     if (st?.isOffline) {
       return { label: 'OFFLINE', color: '#b45309', bg: '#fffbeb', border: '#fde68a' };

@@ -6,7 +6,6 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Activity,
   Usb,
   ShieldAlert,
   ArrowLeftRight,
@@ -144,31 +143,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
             style={{
               width: '40px',
               height: '40px',
-              borderRadius: '8px',
-              backgroundColor: '#eff6ff',
-              border: '1px solid #bfdbfe',
+              borderRadius: '10px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #e2e8f0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#2563eb',
               cursor: 'pointer',
               position: 'relative',
               padding: 0,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
               transition: 'all 0.15s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#dbeafe';
+              e.currentTarget.style.transform = 'scale(1.04)';
+              e.currentTarget.style.borderColor = '#cbd5e1';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#eff6ff';
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.borderColor = '#e2e8f0';
             }}
           >
-            <Activity style={{ width: '20px', height: '20px' }} />
+            <img
+              src="/niriksha-logo.png"
+              alt="Niriksha Logo"
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '7px',
+                objectFit: 'contain'
+              }}
+            />
             <span
               style={{
                 position: 'absolute',
-                bottom: '-2px',
-                right: '-2px',
+                bottom: '-3px',
+                right: '-3px',
                 backgroundColor: '#ffffff',
                 border: '1px solid #cbd5e1',
                 borderRadius: '50%',
@@ -187,22 +197,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           /* When expanded: logo + title + collapse chevron */
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-              <div
+              <img
+                src="/niriksha-logo.png"
+                alt="Niriksha Logo"
                 style={{
                   width: '36px',
                   height: '36px',
                   borderRadius: '8px',
-                  backgroundColor: '#eff6ff',
-                  border: '1px solid #bfdbfe',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#2563eb',
-                  flexShrink: 0
+                  objectFit: 'contain',
+                  flexShrink: 0,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
                 }}
-              >
-                <Activity style={{ width: '20px', height: '20px' }} />
-              </div>
+              />
               <div>
                 <div style={{ fontWeight: '700', fontSize: '14px', color: '#0f172a', letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
                   NIRIKSHA
