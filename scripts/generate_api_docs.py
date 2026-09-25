@@ -22,8 +22,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NIRIKSHA API Documentation</title>
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <title>NIRIKSHA - Interactive API Documentation & Schema</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./favicon.png" />
+  <link rel="apple-touch-icon" href="./niriksha-logo.png" />
   <link rel="stylesheet" type="text/css" href="./swagger-ui.css">
   <style>
     body {
@@ -43,15 +45,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .brand-title {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       color: #ffffff;
       font-weight: 700;
       font-size: 1.15rem;
       text-decoration: none;
     }
     .brand-title img {
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      object-fit: contain;
     }
     .badge {
       background: #2563eb;
@@ -86,7 +90,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <body>
   <div class="topbar-wrapper">
     <a href="https://om29dev.github.io/niriksha/" class="brand-title">
-      <img src="./favicon.svg" alt="NIRIKSHA">
+      <img src="./niriksha-logo.png" alt="NIRIKSHA">
       <span>NIRIKSHA</span>
       <span class="badge">API Reference</span>
     </a>
@@ -144,13 +148,25 @@ def generate_docs(out_dir: str):
         f.write("")
     print(f"[OK] Created .nojekyll: {nojekyll_path}")
 
-    # 4. Copy favicon
-    favicon_src = os.path.join(ROOT_DIR, "frontend", "public", "favicon.svg")
-    favicon_dest = os.path.join(out_dir, "favicon.svg")
-    if os.path.exists(favicon_src):
-        with open(favicon_src, "rb") as rf, open(favicon_dest, "wb") as wf:
-            wf.write(rf.read())
-        print(f"[OK] Copied favicon: {favicon_dest}")
+    # 4. Copy branding assets and favicons matching main site
+    frontend_public = os.path.join(ROOT_DIR, "frontend", "public")
+    site_assets = [
+        "favicon-32x32.png",
+        "favicon-48x48.png",
+        "favicon.ico",
+        "favicon.png",
+        "favicon.svg",
+        "niriksha-logo.png",
+        "niriksha-logo-128.png",
+        "icons.svg",
+    ]
+    for asset_name in site_assets:
+        src = os.path.join(frontend_public, asset_name)
+        dest = os.path.join(out_dir, asset_name)
+        if os.path.exists(src):
+            with open(src, "rb") as rf, open(dest, "wb") as wf:
+                wf.write(rf.read())
+            print(f"[OK] Copied brand asset: {asset_name}")
 
     # 5. Download offline Swagger UI distribution assets
     assets = [
