@@ -1,0 +1,99 @@
+name: Generate and Update API Docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'scripts/generate_api_docs.py'
+      - '.github/workflows/generate-api-docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "generate-api-docs"
+  cancel-in-progress: true
+
+jobs:
+  generate-and-deploy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: './backend/requirements.txt'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Generate OpenAPI spec and Swagger UI bundle
+        run: |
+          python scripts/generate_api_docs.py ./dist_docs
+
+      - name: Update docs in live-demo branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Fetch and checkout live-demo
+          git fetch origin live-demo:live-demo
+          git checkout live-demo
+          
+          # Copy newly generated docs into public/docs/
+          mkdir -p public/docs
+          cp -r ./dist_docs/* public/docs/
+          
+          git add public/docs
+          if git diff --staged --quiet; then
+            echo "No changes detected in API documentation."
+          else
+            git commit -m "docs(api): auto-sync FastAPI OpenAPI docs from main [skip ci]"
+            git push origin live-demo
+          fi
+
+      - name: Update docs directly on gh-pages branch (/docs subpath)
+        run: |
+          # Fetch and checkout gh-pages
+          git fetch origin gh-pages:gh-pages
+          git checkout gh-pages
+          
+          # Copy newly generated docs into docs/
+          mkdir -p docs
+          cp -r ./dist_docs/* docs/
+          
+          git add docs
+          if git diff --staged --quiet; then
+            echo "No changes detected in gh-pages docs."
+          else
+            git commit -m "docs(api): auto-deploy FastAPI Swagger UI docs on /docs"
+            git push origin gh-pages
+          fi
+
+      - name: Update dedicated docs-pages branch
+        run: |
+          # Fetch and checkout docs-pages
+          git fetch origin docs-pages:docs-pages
+          git checkout docs-pages
+          
+          # Copy newly generated docs into root of docs-pages
+          cp -r ./dist_docs/* ./
+          
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes detected in docs-pages."
+          else
+            git commit -m "docs(api): auto-update standalone docs-pages branch"
+            git push origin docs-pages
+          fi
