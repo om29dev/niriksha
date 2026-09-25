@@ -32,6 +32,56 @@ export const MapLegend: React.FC<MapLegendProps> = () => {
         <span>N 0° 00' E</span>
       </div>
 
+      {/* Comprehensive Scenario Hazard Symbology Key */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '16px',
+          left: '16px',
+          backgroundColor: 'rgba(255,255,255,0.96)',
+          backdropFilter: 'blur(6px)',
+          border: '1px solid #cbd5e1',
+          borderRadius: '8px',
+          padding: '8px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          zIndex: 10,
+          maxWidth: '240px'
+        }}
+      >
+        <span style={{ fontSize: '11px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <span>Map Telemetry & Hazard Key</span>
+        </span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 8px', fontSize: '10px', fontWeight: '600' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#059669' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+            <span>Optimal</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#b91c1c' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
+            <span>⚡ Voltage Leak</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#c2410c' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f97316' }} />
+            <span>🔥 Fire Outbreak</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#0369a1' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0ea5e9' }} />
+            <span>🌊 Severe Flood</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#a16207' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#eab308' }} />
+            <span>⚠️ Toppled Tilt</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#7e22ce' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#a855f7' }} />
+            <span>☣️ Toxic Gas</span>
+          </div>
+        </div>
+      </div>
+
       {/* Scale Legend */}
       <div
         style={{
