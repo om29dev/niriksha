@@ -15,6 +15,7 @@ import {
   Bot
 } from 'lucide-react';
 import type { PoleId } from '../types/telemetry';
+import nirikshaLogo from '../assets/niriksha-logo.png';
 
 export type ActiveView = 'dashboard' | 'compare' | 'fleet' | 'map' | 'history' | 'reports' | 'ai' | 'alerts' | 'settings';
 
@@ -165,7 +166,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }}
           >
             <img
-              src="/niriksha-logo.png"
+              src={nirikshaLogo}
               alt="Niriksha Logo"
               style={{
                 width: '32px',
@@ -198,7 +199,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
               <img
-                src="/niriksha-logo.png"
+                src={nirikshaLogo}
                 alt="Niriksha Logo"
                 style={{
                   width: '36px',
