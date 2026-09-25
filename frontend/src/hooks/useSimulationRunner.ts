@@ -11,7 +11,7 @@ export function useSimulationRunner({
   onPacketEmitted,
   onAlertEmitted
 }: UseSimulationRunnerProps) {
-  const [isSimulating, setIsSimulating] = useState<boolean>(false);
+  const [isSimulating, setIsSimulating] = useState<boolean>(true);
   const [scenario, setScenario] = useState<ScenarioType>('NORMAL');
 
   const seqRef = useRef<number>(2000);
@@ -35,6 +35,16 @@ export function useSimulationRunner({
       clearInterval(timerRef.current);
     }
     setIsSimulating(true);
+
+    // Immediately prime all 3 mesh nodes with fresh baseline telemetry
+    for (let p = 1; p <= 3; p++) {
+      seqRef.current += 1;
+      const pkt = createSimulatedPacket(p, seqRef.current, scenario);
+      onPacketRef.current(pkt);
+      if (pkt.alert_message && onAlertRef.current) {
+        onAlertRef.current(pkt);
+      }
+    }
 
     timerRef.current = setInterval(() => {
       seqRef.current += 1;
@@ -63,7 +73,6 @@ export function useSimulationRunner({
     (newScenario: ScenarioType) => {
       setScenario(newScenario);
       if (isSimulating) {
-        // Immediately fire a cycle with the new scenario
         for (let p = 1; p <= 3; p++) {
           seqRef.current += 1;
           const pkt = createSimulatedPacket(p, seqRef.current, newScenario);

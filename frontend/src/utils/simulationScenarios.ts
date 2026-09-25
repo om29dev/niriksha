@@ -19,7 +19,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
   {
     id: 'NORMAL',
     label: 'Normal Mesh Baseline',
-    description: 'All 3 poles upright, nominal 230V, 27°C, safe water & gas levels',
+    description: 'All 3 poles upright, safe 0.1V water probe, 27°C, safe water & gas levels',
     badgeColor: '#10b981'
   },
   {
@@ -37,7 +37,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
   {
     id: 'FLOOD_SUBMERSION',
     label: 'Severe Flood Level',
-    description: 'Pole 2 ultrasonic sensor reports water depth exceeding 115 cm',
+    description: 'Pole 2 ultrasonic sensor reports water depth exceeding 118 cm',
     badgeColor: '#0ea5e9'
   },
   {
@@ -49,7 +49,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
   {
     id: 'TOXIC_GAS',
     label: 'Toxic Gas Spike',
-    description: 'Pole 1 detects elevated CO (68 ppm) and hazardous pollutants',
+    description: 'Pole 1 detects elevated CO (72 ppm) and hazardous pollutants',
     badgeColor: '#a855f7'
   }
 ];
@@ -61,11 +61,11 @@ export function createSimulatedPacket(poleId: number, seq: number, scenario: Sce
   const isP3 = poleId === 3;
 
   // Defaults (Normal)
-  let voltage = 230 + Math.sin(seq / 4) * 3 + (Math.random() * 1.5 - 0.75);
-  let current_ma = 1200 + Math.cos(seq / 5) * 100 + Math.random() * 40;
+  let voltage = 0.1 + Math.sin(seq / 4) * 0.05 + Math.random() * 0.04;
+  let current_ma = 1200 + Math.cos(seq / 5) * 80 + Math.random() * 20;
   let temp = 27.5 + Math.sin(seq / 8) * 1.5 + (Math.random() * 0.4 - 0.2);
   let humidity = 58 + Math.cos(seq / 9) * 4 + (Math.random() * 1 - 0.5);
-  let water_depth = isP2 ? 12.0 + Math.sin(seq / 3) * 1.5 : 2.5;
+  let water_depth = isP2 ? 14.0 + Math.sin(seq / 3) * 1.5 : (isP1 ? 12.0 : 4.0);
   let is_upright = true;
   let mq7 = 16.0 + Math.random() * 3;
   let mq135 = 65.0 + Math.random() * 5;
@@ -78,7 +78,7 @@ export function createSimulatedPacket(poleId: number, seq: number, scenario: Sce
   switch (scenario) {
     case 'HIGH_VOLTAGE':
       if (isP1) {
-        voltage = 12.8 + Math.sin(seq / 2) * 1.2; // Trigger voltage hazard > 5.0V
+        voltage = 12.8 + Math.sin(seq / 2) * 1.2;
         water_depth = 45.0;
         electrocution_risk = 92;
         alert_msg = 'CRITICAL: Water Electrification Leak Detected on Pole 1';
@@ -87,7 +87,7 @@ export function createSimulatedPacket(poleId: number, seq: number, scenario: Sce
 
     case 'FIRE_THERMAL':
       if (isP3) {
-        temp = 68.5 + Math.sin(seq / 2) * 3; // Trigger fire hazard >= 60.0°C
+        temp = 68.5 + Math.sin(seq / 2) * 3;
         humidity = 24.0;
         mq7 = 55.0;
         fire_risk = 95;
@@ -97,7 +97,7 @@ export function createSimulatedPacket(poleId: number, seq: number, scenario: Sce
 
     case 'FLOOD_SUBMERSION':
       if (isP2) {
-        water_depth = 118.0 + Math.sin(seq / 2) * 5; // Trigger flood hazard > 100cm
+        water_depth = 118.0 + Math.sin(seq / 2) * 5;
         humidity = 94.0;
         alert_msg = 'WARNING: Water Submersion Depth (118cm) on Pole 2';
       }
@@ -105,15 +105,15 @@ export function createSimulatedPacket(poleId: number, seq: number, scenario: Sce
 
     case 'POLE_TILT':
       if (isP2) {
-        is_upright = false; // Trigger tilt / down pole
+        is_upright = false;
         alert_msg = 'CRITICAL: Pole 2 Inclinometer Tripped - Structural Tilt / Fallen';
       }
       break;
 
     case 'TOXIC_GAS':
       if (isP1) {
-        mq7 = 72.0 + Math.sin(seq / 2) * 5; // > 50 ppm threshold
-        mq135 = 210.0 + Math.sin(seq / 2) * 15; // > 150 ppm threshold
+        mq7 = 72.0 + Math.sin(seq / 2) * 5;
+        mq135 = 210.0 + Math.sin(seq / 2) * 15;
         alert_msg = 'WARNING: Toxic Gas Spike (CO 72 ppm, Pollutants 210 ppm) on Pole 1';
       }
       break;
@@ -128,7 +128,7 @@ export function createSimulatedPacket(poleId: number, seq: number, scenario: Sce
   const tRounded = Number(temp.toFixed(1));
   const hRounded = Number(humidity.toFixed(1));
   const wRounded = Number(water_depth.toFixed(1));
-  const powerRounded = Number(((vRounded * cRounded) / 1000).toFixed(1));
+  const powerRounded = Number(((230 * (cRounded / 1000))).toFixed(1));
 
   return {
     seq,
@@ -156,7 +156,7 @@ export function createSimulatedPacket(poleId: number, seq: number, scenario: Sce
       temperature: { val: tRounded, status: temp >= 60 ? 'CRITICAL' : temp > 45 ? 'WARNING' : 'NORMAL', unit: '°C' },
       humidity: { val: hRounded, status: humidity > 85 ? 'WARNING' : 'NORMAL', unit: '%' },
       water_depth: { val: wRounded, status: water_depth > 100 ? 'CRITICAL' : 'NORMAL', unit: 'cm' },
-      voltage: { val: vRounded, status: voltage > 5.0 && scenario === 'HIGH_VOLTAGE' ? 'CRITICAL' : 'NORMAL', unit: 'V' },
+      voltage: { val: vRounded, status: vRounded > 5.0 ? 'CRITICAL' : 'NORMAL', unit: 'V' },
       current_ma: { val: cRounded, status: 'NORMAL', unit: 'mA' },
       power: { val: powerRounded, status: 'NORMAL', unit: 'W' },
       frequency: { val: 50.0, status: 'NORMAL', unit: 'Hz' },
@@ -166,7 +166,7 @@ export function createSimulatedPacket(poleId: number, seq: number, scenario: Sce
       mq136: { val: Number(mq136.toFixed(1)), status: mq136 > 15 ? 'WARNING' : 'NORMAL', unit: 'ppm' },
       tilt: { val: null, is_upright, status: is_upright ? 'NORMAL' : 'CRITICAL' }
     },
-    status: is_upright ? (alert_msg ? 'WARNING' : 'NORMAL') : 'CRITICAL',
+    status: is_upright ? (alert_msg ? (scenario === 'HIGH_VOLTAGE' || scenario === 'FIRE_THERMAL' ? 'CRITICAL' : 'WARNING') : 'NORMAL') : 'CRITICAL',
     source: 'SIMULATOR_DEMO'
   };
 }

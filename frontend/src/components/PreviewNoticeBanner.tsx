@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Play, Square, ChevronDown, Radio } from 'lucide-react';
 import { SCENARIOS, type ScenarioType } from '../utils/simulationScenarios';
 
@@ -16,7 +16,20 @@ export const PreviewNoticeBanner: React.FC<PreviewNoticeBannerProps> = ({
   onSelectScenario
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const currentScenarioDef = SCENARIOS.find((s) => s.id === activeScenario) || SCENARIOS[0];
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [dropdownOpen]);
 
   return (
     <div
@@ -24,58 +37,60 @@ export const PreviewNoticeBanner: React.FC<PreviewNoticeBannerProps> = ({
         position: 'sticky',
         top: 0,
         zIndex: 50,
-        backgroundColor: '#0f172a',
-        color: '#f8fafc',
-        borderBottom: '2px solid #2563eb',
-        padding: '10px 24px',
+        backgroundColor: '#ffffff',
+        color: '#0f172a',
+        borderBottom: '1px solid #cbd5e1',
+        borderTop: '2px solid #2563eb',
+        padding: '8px 24px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: '12px',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)'
       }}
     >
       {/* Left: Preview Announcement Tag */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
         <span
           style={{
             backgroundColor: '#2563eb',
             color: '#ffffff',
-            padding: '3px 8px',
+            padding: '2px 8px',
             borderRadius: '4px',
             fontSize: '11px',
             fontWeight: '700',
-            letterSpacing: '0.05em',
+            letterSpacing: '0.04em',
             textTransform: 'uppercase'
           }}
         >
           DEMO PREVIEW
         </span>
 
-        <span style={{ fontSize: '13px', fontWeight: '500', color: '#e2e8f0' }}>
-          This is an interactive browser preview of <strong>NIRIKSHA</strong>. Test hazard heuristics and telemetry charts in real time.
+        <span style={{ fontSize: '12.5px', fontWeight: '500', color: '#475569' }}>
+          Interactive browser preview of <strong style={{ color: '#0f172a' }}>NIRIKSHA</strong>. Live mesh simulation & hazard heuristics.
         </span>
       </div>
 
       {/* Right: Simulation Controls and Scenario Selector */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         {/* Scenario Selector Dropdown */}
-        <div style={{ position: 'relative' }}>
+        <div ref={dropdownRef} style={{ position: 'relative' }}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              backgroundColor: '#1e293b',
-              color: '#f1f5f9',
-              border: '1px solid #334155',
+              backgroundColor: '#ffffff',
+              color: '#1e293b',
+              border: '1px solid #cbd5e1',
               padding: '6px 12px',
               borderRadius: '6px',
               fontSize: '12px',
               fontWeight: '500',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
             }}
           >
             <span
@@ -87,7 +102,7 @@ export const PreviewNoticeBanner: React.FC<PreviewNoticeBannerProps> = ({
               }}
             />
             <span>Scenario: <strong>{currentScenarioDef.label}</strong></span>
-            <ChevronDown style={{ width: '14px', height: '14px', color: '#94a3b8' }} />
+            <ChevronDown style={{ width: '14px', height: '14px', color: '#64748b' }} />
           </button>
 
           {dropdownOpen && (
@@ -95,66 +110,70 @@ export const PreviewNoticeBanner: React.FC<PreviewNoticeBannerProps> = ({
               style={{
                 position: 'absolute',
                 top: 'calc(100% + 6px)',
-                right: 0,
+                left: 0,
                 width: '320px',
-                backgroundColor: '#1e293b',
-                border: '1px solid #334155',
+                maxWidth: 'calc(100vw - 32px)',
+                backgroundColor: '#ffffff',
+                border: '1px solid #cbd5e1',
                 borderRadius: '8px',
                 padding: '6px',
-                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.4)',
+                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.12), 0 8px 10px -6px rgba(0,0,0,0.04)',
                 zIndex: 100
               }}
             >
-              <div style={{ padding: '6px 10px', fontSize: '11px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase' }}>
+              <div style={{ padding: '6px 10px', fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>
                 Select Hazard / Sensor Scenario
               </div>
-              {SCENARIOS.map((scenario) => (
-                <button
-                  key={scenario.id}
-                  onClick={() => {
-                    onSelectScenario(scenario.id);
-                    setDropdownOpen(false);
-                  }}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '8px 10px',
-                    borderRadius: '6px',
-                    border: 'none',
-                    backgroundColor: activeScenario === scenario.id ? '#334155' : 'transparent',
-                    color: '#f8fafc',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '2px',
-                    transition: 'background-color 0.15s'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600' }}>
-                    <span
-                      style={{
-                        width: '8px',
-                        height: '8px',
-                        borderRadius: '50%',
-                        backgroundColor: scenario.badgeColor,
-                        flexShrink: 0
-                      }}
-                    />
-                    <span>{scenario.label}</span>
-                  </div>
-                  <span style={{ fontSize: '11px', color: '#94a3b8', paddingLeft: '16px' }}>
-                    {scenario.description}
-                  </span>
-                </button>
-              ))}
+              {SCENARIOS.map((scenario) => {
+                const isSelected = activeScenario === scenario.id;
+                return (
+                  <button
+                    key={scenario.id}
+                    onClick={() => {
+                      onSelectScenario(scenario.id);
+                      setDropdownOpen(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '8px 10px',
+                      borderRadius: '6px',
+                      border: isSelected ? '1px solid #bfdbfe' : '1px solid transparent',
+                      backgroundColor: isSelected ? '#eff6ff' : 'transparent',
+                      color: isSelected ? '#1d4ed8' : '#1e293b',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '2px',
+                      marginBottom: '2px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600' }}>
+                      <span
+                        style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          backgroundColor: scenario.badgeColor,
+                          flexShrink: 0
+                        }}
+                      />
+                      <span>{scenario.label}</span>
+                    </div>
+                    <span style={{ fontSize: '11px', color: '#64748b', paddingLeft: '16px' }}>
+                      {scenario.description}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
 
         {/* Live Simulation Indicator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: isSimulating ? '#22c55e' : '#94a3b8' }}>
-          <Radio style={{ width: '14px', height: '14px', animation: isSimulating ? 'pulse 1.5s infinite' : 'none' }} />
-          <span>{isSimulating ? 'Simulating Live Stream' : 'Simulation Paused'}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: isSimulating ? '#16a34a' : '#64748b' }}>
+          <Radio style={{ width: '14px', height: '14px', color: isSimulating ? '#16a34a' : '#94a3b8' }} />
+          <span style={{ fontWeight: '500' }}>{isSimulating ? 'Live Telemetry' : 'Simulation Paused'}</span>
         </div>
 
         {/* Start / Stop Button */}
@@ -164,27 +183,26 @@ export const PreviewNoticeBanner: React.FC<PreviewNoticeBannerProps> = ({
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            backgroundColor: isSimulating ? '#dc2626' : '#2563eb',
-            color: '#ffffff',
-            border: 'none',
+            backgroundColor: isSimulating ? '#ffffff' : '#2563eb',
+            color: isSimulating ? '#475569' : '#ffffff',
+            border: isSimulating ? '1px solid #cbd5e1' : 'none',
             padding: '6px 14px',
             borderRadius: '6px',
             fontSize: '12px',
             fontWeight: '600',
             cursor: 'pointer',
-            transition: 'background-color 0.2s',
-            boxShadow: isSimulating ? '0 1px 3px rgba(220,38,38,0.4)' : '0 1px 3px rgba(37,99,235,0.4)'
+            boxShadow: isSimulating ? '0 1px 2px rgba(0,0,0,0.05)' : '0 1px 3px rgba(37,99,235,0.4)'
           }}
         >
           {isSimulating ? (
             <>
-              <Square style={{ width: '13px', height: '13px', fill: '#ffffff' }} />
-              <span>Stop Simulation</span>
+              <Square style={{ width: '12px', height: '12px', color: '#64748b' }} />
+              <span>Pause Simulation</span>
             </>
           ) : (
             <>
-              <Play style={{ width: '13px', height: '13px', fill: '#ffffff' }} />
-              <span>Start Simulation</span>
+              <Play style={{ width: '12px', height: '12px', fill: '#ffffff' }} />
+              <span>Resume Simulation</span>
             </>
           )}
         </button>
