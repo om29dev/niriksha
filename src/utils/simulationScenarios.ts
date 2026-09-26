@@ -60,18 +60,13 @@ export function createSimulatedPacket(poleId: number, seq: number, scenario: Sce
   const isP2 = poleId === 2;
   const isP3 = poleId === 3;
 
-  // Defaults (Normal)
   let voltage = 0.1 + Math.sin(seq / 4) * 0.05 + Math.random() * 0.04;
   let current_ma = 1200 + Math.cos(seq / 5) * 80 + Math.random() * 20;
   let temp = 27.5 + Math.sin(seq / 8) * 1.5 + (Math.random() * 0.4 - 0.2);
   let humidity = 58 + Math.cos(seq / 9) * 4 + (Math.random() * 1 - 0.5);
   let water_depth = isP2 ? 14.0 + Math.sin(seq / 3) * 1.5 : (isP1 ? 12.0 : 4.0);
-  let is_upright = true;
-  let mq7 = 16.0 + Math.random() * 3;
-  let mq135 = 65.0 + Math.random() * 5;
-  let mq136 = 8.0 + Math.random() * 2;
-  let electrocution_risk = 0;
-  let fire_risk = 0;
+  let is_upright = true, electrocution_risk = 0, fire_risk = 0;
+  let mq7 = 16.0 + Math.random() * 3, mq135 = 65.0 + Math.random() * 5, mq136 = 8.0 + Math.random() * 2;
   let alert_msg: string | null = null;
 
   // Scenario overrides
@@ -130,6 +125,22 @@ export function createSimulatedPacket(poleId: number, seq: number, scenario: Sce
   const wRounded = Number(water_depth.toFixed(1));
   const powerRounded = Number(((230 * (cRounded / 1000))).toFixed(1));
 
+  let pitch = isP3 ? Number((Math.sin(seq / 4) * 2.0).toFixed(1)) : 0.0;
+  let roll = isP3 ? Number((Math.cos(seq / 4) * 1.5).toFixed(1)) : 0.0;
+  let tilt_angle = isP3 ? Number(Math.sqrt(pitch * pitch + roll * roll).toFixed(1)) : (is_upright ? 0.0 : 45.0);
+  let accel_x = isP3 ? Number((Math.sin(seq / 3) * 0.2).toFixed(2)) : 0.0;
+  let accel_y = isP3 ? Number((Math.cos(seq / 3) * 0.2).toFixed(2)) : 0.0;
+  let accel_z = isP3 ? 9.81 : 9.81;
+
+  if (scenario === 'POLE_TILT') {
+    if (isP3) {
+      pitch = 24.5;
+      roll = 12.0;
+      tilt_angle = 27.3;
+      alert_msg = 'CRITICAL: Landslide / Structural Ground Tilt (27.3°) on Pole 3';
+    }
+  }
+
   return {
     seq,
     timestamp: now,
@@ -150,6 +161,16 @@ export function createSimulatedPacket(poleId: number, seq: number, scenario: Sce
     mq7: Number(mq7.toFixed(1)),
     mq135: Number(mq135.toFixed(1)),
     mq136: Number(mq136.toFixed(1)),
+    accel_x,
+    accel_y,
+    accel_z,
+    gyro_x: 0.0,
+    gyro_y: 0.0,
+    gyro_z: 0.0,
+    pitch,
+    roll,
+    tilt_angle,
+    mpu_temperature: isP3 ? Number((temp + 1.2).toFixed(1)) : null,
     electrocution_risk_index: electrocution_risk,
     fire_combustion_index: fire_risk,
     sensors: {
@@ -164,7 +185,10 @@ export function createSimulatedPacket(poleId: number, seq: number, scenario: Sce
       mq7: { val: Number(mq7.toFixed(1)), status: mq7 > 50 ? 'WARNING' : 'NORMAL', unit: 'ppm' },
       mq135: { val: Number(mq135.toFixed(1)), status: mq135 > 150 ? 'WARNING' : 'NORMAL', unit: 'ppm' },
       mq136: { val: Number(mq136.toFixed(1)), status: mq136 > 15 ? 'WARNING' : 'NORMAL', unit: 'ppm' },
-      tilt: { val: null, is_upright, status: is_upright ? 'NORMAL' : 'CRITICAL' }
+      tilt: { val: null, is_upright, status: is_upright ? 'NORMAL' : 'CRITICAL' },
+      tilt_angle: { val: tilt_angle, status: tilt_angle >= 15 ? 'CRITICAL' : 'NORMAL', unit: '°' },
+      pitch: { val: pitch, status: 'NORMAL', unit: '°' },
+      roll: { val: roll, status: 'NORMAL', unit: '°' }
     },
     status: is_upright ? (alert_msg ? (scenario === 'HIGH_VOLTAGE' || scenario === 'FIRE_THERMAL' ? 'CRITICAL' : 'WARNING') : 'NORMAL') : 'CRITICAL',
     source: 'SIMULATOR_DEMO'

@@ -25,6 +25,17 @@ export interface TelemetryPacket {
   mq7?: number | null;
   mq135?: number | null;
   mq136?: number | null;
+  mq2?: number | null;
+  accel_x?: number | null;
+  accel_y?: number | null;
+  accel_z?: number | null;
+  gyro_x?: number | null;
+  gyro_y?: number | null;
+  gyro_z?: number | null;
+  pitch?: number | null;
+  roll?: number | null;
+  tilt_angle?: number | null;
+  mpu_temperature?: number | null;
   electrocution_risk_index?: number;
   fire_combustion_index?: number;
   sensors?: Record<string, SensorPoint>;
@@ -62,4 +73,3 @@ export interface PersistentAlert {
   resolved_at?: string | null;
   resolved_by?: string | null;
 }
-
