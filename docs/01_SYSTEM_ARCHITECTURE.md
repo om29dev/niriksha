@@ -6,195 +6,111 @@ NIRIKSHA is an offline-capable, distributed environmental intelligence and hazar
 
 ## 1. High-Level System Architecture
 
-The following D2 diagram illustrates the complete end-to-end data pipeline: from physical sensor instrumentation on urban utility poles to real-time browser rendering and local database persistence.
+The following Mermaid diagram illustrates the complete end-to-end data pipeline: from physical sensor instrumentation on urban utility poles to real-time browser rendering and local database persistence.
 
-```d2
-direction: right
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Inter, Segoe UI, Helvetica, Arial, sans-serif",
+    "fontSize": "15px",
+    "primaryColor": "#ffffff",
+    "primaryBorderColor": "#94a3b8",
+    "primaryTextColor": "#0f172a",
+    "lineColor": "#64748b",
+    "clusterBkg": "#f8fafc",
+    "clusterBorder": "#cbd5e1",
+    "edgeLabelBackground": "#ffffff"
+  },
+  "flowchart": { "curve": "basis", "htmlLabels": true, "nodeSpacing": 40, "rankSpacing": 55 }
+} }%%
+flowchart TB
 
-edge_mesh: Field Mesh Network (ESP-NOW 2.4GHz) {
-  style.fill: "#f8fafc"
-  style.stroke: "#cbd5e1"
-  style.stroke-width: 2
+    subgraph FIELD["FIELD LAYER  ·  Wireless Sensor Mesh — painlessMesh 2.4GHz RF"]
+        direction LR
+        P1["<b>POLE 1</b> — Flood &amp; Submersion Node<br/>─────────────<br/>ZMPT101B · Voltage Leak<br/>HC‑SR04 · Ultrasonic Depth<br/>SW‑520D · Tilt Switch<br/>MQ Gas Array<br/><i>TX interval 2300 ms</i>"]
+        P2["<b>POLE 2</b> — Grid &amp; Power Metering Node<br/>─────────────<br/>PZEM‑004T · V / I / W / kWh / PF<br/>SW‑520D · Tilt Switch<br/>MQ Gas Array<br/><i>TX interval 2500 ms</i>"]
+        P3["<b>POLE 3</b> — Root Gateway Hub<br/>─────────────<br/>painlessMesh Root Sink<br/>Serial UART Bridge @ 115200 baud"]
+        P1 -- "RF mesh hop" --> P3
+        P2 -- "RF mesh hop" --> P3
+    end
 
-  pole1: Pole 1: Flood & Submersion {
-    shape: rectangle
-    style.fill: "#f0fdf4"
-    style.stroke: "#22c55e"
-    zmpt: "ZMPT101B (Voltage Leak)"
-    hcsr04: "HC-SR04 (Ultrasonic Depth)"
-    sw520d_1: "SW-520D (Structural Tilt)"
-    mq_p1: "MQ Gas Array"
-  }
+    subgraph INGEST["INGESTION LAYER  ·  FastAPI Backend — Dual Concurrent Protocols"]
+        direction LR
+        SER["<b>PySerial Worker</b><br/><code>serial_manager.py</code><br/>daemon thread<br/>exponential reconnect backoff"]
+        MQ["<b>Async MQTT Ingestor</b><br/><code>mqtt_manager.py</code> · aiomqtt<br/>topic: niriksha/poles/+/telemetry<br/>broker :1883"]
+        NORM["<b>Unified Schema Normalizer</b><br/><code>normalizer.py</code><br/>maps payload → canonical schema<br/>inactive sensor → NOT_CONNECTED"]
+        SER --> NORM
+        MQ --> NORM
+    end
 
-  pole2: Pole 2: Power Grid & Metering {
-    shape: rectangle
-    style.fill: "#eff6ff"
-    style.stroke: "#3b82f6"
-    pzem: "PZEM-004T (V, I, W, kWh, PF)"
-    sw520d_2: "SW-520D (Structural Tilt)"
-    mq_p2: "MQ Gas Array"
-  }
+    P3 == "USB Serial UART<br/>(COM port)" ==> SER
 
-  pole3: Pole 3: Root Gateway Hub Node {
-    shape: rectangle
-    style.fill: "#fef3c7"
-    style.stroke: "#f59e0b"
-    sink: "painlessMesh Root Sink"
-    serial_tx: "Serial UART Bridge (115200)"
-  }
+    subgraph ANALYTICS["ANALYTICS LAYER  ·  Algorithmic Signal Processing Pipeline"]
+        direction LR
+        KAL["<b>1D Kalman Filter Bank</b><br/><code>kalman.py</code><br/>Q/R‑tuned noise rejection"]
+        ANOM["<b>Statistical Anomaly Bank</b><br/><code>anomaly.py</code><br/>EWMA baseline · Z‑score surge<br/>CUSUM drift detection"]
+        FUS["<b>Multi‑Sensor Hazard Fusion</b><br/><code>fusion_engine.py</code><br/>Electrocution Risk Index<br/>Fire Combustion Index"]
+        KAL --> ANOM --> FUS
+    end
 
-  pole1 -> pole3.sink: "painlessMesh RF (2300ms)" {
-    style.stroke: "#22c55e"
-    style.stroke-dash: 3
-  }
-  pole2 -> pole3.sink: "painlessMesh RF (2500ms)" {
-    style.stroke: "#3b82f6"
-    style.stroke-dash: 3
-  }
-}
+    NORM -- "normalized<br/>float stream" --> KAL
 
-gateway_layer: Ingestion Layer (FastAPI Backend) {
-  style.fill: "#ffffff"
-  style.stroke: "#94a3b8"
-  style.stroke-width: 2
+    subgraph FANOUT["DISTRIBUTION LAYER  ·  Decoupled Fan‑Out"]
+        direction LR
+        BUF[("In‑Memory Batch Buffer<br/><code>buffer.py</code><br/>flush @ 250‑300 ms or 50 rows")]
+        WS["WebSocket Connection Manager<br/><code>connection_manager.py</code><br/>thread‑safe asyncio broadcast"]
+        AI["Offline AI Diagnostics<br/><code>diagnostics.py</code> + <code>ollama.py</code><br/>rule heuristics + local LLM"]
+    end
 
-  serial_worker: PySerial Background Worker {
-    shape: step
-    style.fill: "#f1f5f9"
-    style.stroke: "#475569"
-    desc: "Dedicated daemon thread with exponential reconnect backoff"
-  }
+    FUS -- "enriched record" --> BUF
+    FUS -- "live broadcast" --> WS
+    FUS -- "context snapshot" --> AI
 
-  mqtt_worker: Async MQTT Ingestor (aiomqtt) {
-    shape: step
-    style.fill: "#f1f5f9"
-    style.stroke: "#475569"
-    desc: "Subscribes to niriksha/poles/+/telemetry (1883)"
-  }
+    PG[("PostgreSQL 14+<br/>Time‑Series Store<br/>asyncpg pool · executemany")]
+    BUF == "multi‑row batch<br/>transaction" ==> PG
 
-  normalizer: Packet Normalizer {
-    shape: class
-    style.fill: "#e0e7ff"
-    style.stroke: "#4f46e5"
-    desc: "Converts payloads to Unified Sensor Schema"
-  }
+    subgraph CLIENT["CLIENT LAYER  ·  React 19 + Vite Dashboard — Air‑Gapped"]
+        direction LR
+        SWIN["Sliding Window State<br/>50‑100 pts / metric series"]
+        RAF["requestAnimationFrame Throttler<br/>redraw locked to 60 FPS"]
+        UI["UI Views<br/>Live Telemetry · Spatial Map<br/>Alerts · Reports · AI Drawer"]
+        SWIN --> RAF --> UI
+    end
 
-  serial_worker -> normalizer: "Raw MESH_JSON frames"
-  mqtt_worker -> normalizer: "Async JSON payloads"
-}
+    WS == "WebSocket<br/>/ws/telemetry" ==> SWIN
 
-edge_mesh.pole3.serial_tx -> gateway_layer.serial_worker: "USB Serial UART (COM Port)" {
-  style.stroke: "#d97706"
-  style.stroke-width: 2
-}
+    classDef pole1 fill:#f0fdf4,stroke:#16a34a,stroke-width:1.5px,color:#14532d;
+    classDef pole2 fill:#eff6ff,stroke:#2563eb,stroke-width:1.5px,color:#1e3a5f;
+    classDef pole3 fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f;
+    classDef ingest fill:#f1f5f9,stroke:#475569,stroke-width:1.5px,color:#1e293b;
+    classDef norm fill:#e0e7ff,stroke:#4f46e5,stroke-width:1.5px,color:#312e81;
+    classDef analytics fill:#ede9fe,stroke:#7c3aed,stroke-width:1.5px,color:#4c1d95;
+    classDef fusion fill:#fee2e2,stroke:#ef4444,stroke-width:1.5px,color:#7f1d1d;
+    classDef buffer fill:#fef9c3,stroke:#ca8a04,stroke-width:1.5px,color:#713f12;
+    classDef ws fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#1e3a5f;
+    classDef ai fill:#ccfbf1,stroke:#0d9488,stroke-width:1.5px,color:#134e4a;
+    classDef storage fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d;
+    classDef client fill:#f8fafc,stroke:#3b82f6,stroke-width:1.5px,color:#1e3a5f;
 
-analytics_layer: Algorithmic Signal Processing Pipeline {
-  style.fill: "#f8fafc"
-  style.stroke: "#64748b"
+    class P1 pole1;
+    class P2 pole2;
+    class P3 pole3;
+    class SER,MQ ingest;
+    class NORM norm;
+    class KAL,ANOM analytics;
+    class FUS fusion;
+    class BUF buffer;
+    class WS ws;
+    class AI ai;
+    class PG storage;
+    class SWIN,RAF,UI client;
 
-  kalman: 1D Kalman Filter Bank {
-    shape: step
-    style.fill: "#ede9fe"
-    style.stroke: "#7c3aed"
-    desc: "Noise rejection on ADC & Ultrasonic signals"
-  }
-
-  anomaly: Statistical Anomaly Bank {
-    shape: step
-    style.fill: "#ede9fe"
-    style.stroke: "#7c3aed"
-    desc: "Streaming EWMA baseline, Z-Score surge, CUSUM drift"
-  }
-
-  fusion: Multi-Sensor Hazard Fusion Engine {
-    shape: step
-    style.fill: "#fee2e2"
-    style.stroke: "#ef4444"
-    desc: "Electrocution Risk Index, Fire Combustion Index, Tilt Debounce"
-  }
-
-  gateway_layer.normalizer -> kalman: "Normalized float stream"
-  kalman -> anomaly: "Filtered values"
-  anomaly -> fusion: "Drift flags + clean values"
-}
-
-distribution_layer: Decoupled Fan-Out Architecture {
-  style.fill: "#ffffff"
-  style.stroke: "#cbd5e1"
-
-  db_buffer: In-Memory Batch Buffer {
-    shape: queue
-    style.fill: "#fef9c3"
-    style.stroke: "#ca8a04"
-    desc: "Ring buffer flushed every 250-300ms or 50 records"
-  }
-
-  ws_manager: Real-Time Connection Manager {
-    shape: step
-    style.fill: "#dbeafe"
-    style.stroke: "#2563eb"
-    desc: "Thread-safe asyncio WebSocket broadcaster"
-  }
-
-  ai_engine: Offline AI Diagnostics {
-    shape: step
-    style.fill: "#ccfbf1"
-    style.stroke: "#0d9488"
-    desc: "Deterministic heuristics + Ollama local LLM"
-  }
-
-  analytics_layer.fusion -> db_buffer: "Enriched packet"
-  analytics_layer.fusion -> ws_manager: "Broadcast payload"
-  analytics_layer.fusion -> ai_engine: "Context snapshot"
-}
-
-persistence_layer: High-Throughput Storage {
-  style.fill: "#f8fafc"
-  style.stroke: "#94a3b8"
-
-  postgres: PostgreSQL 14+ Time-Series DB {
-    shape: cylinder
-    style.fill: "#dcfce7"
-    style.stroke: "#16a34a"
-    desc: "Indexed tables: telemetry & alerts via asyncpg pool"
-  }
-
-  distribution_layer.db_buffer -> postgres: "Multi-row executemany transactions" {
-    style.stroke: "#16a34a"
-    style.stroke-width: 2
-  }
-}
-
-client_layer: React 19 + Vite Dashboard (Air-Gapped) {
-  style.fill: "#ffffff"
-  style.stroke: "#3b82f6"
-  style.stroke-width: 2
-
-  sliding_buffer: Sliding Window State {
-    shape: queue
-    style.fill: "#f1f5f9"
-    desc: "Max 50-100 data points per metric series"
-  }
-
-  raf_throttle: requestAnimationFrame Throttler {
-    shape: step
-    style.fill: "#eff6ff"
-    desc: "Locks canvas/SVG redraws to 60 FPS"
-  }
-
-  ui_views: UI Views & Components {
-    shape: rectangle
-    style.fill: "#f8fafc"
-    desc: "Live Telemetry, Spatial Map, Alerts, Reports, AI Drawer"
-  }
-
-  distribution_layer.ws_manager -> client_layer.sliding_buffer: "WebSocket /ws/telemetry" {
-    style.stroke: "#2563eb"
-    style.stroke-width: 2
-  }
-  sliding_buffer -> raf_throttle: "Raw packet queue"
-  raf_throttle -> ui_views: "Synchronized state dispatch"
-}
+    style FIELD fill:#ffffff,stroke:#cbd5e1,stroke-width:1px
+    style INGEST fill:#ffffff,stroke:#cbd5e1,stroke-width:1px
+    style ANALYTICS fill:#ffffff,stroke:#cbd5e1,stroke-width:1px
+    style FANOUT fill:#ffffff,stroke:#cbd5e1,stroke-width:1px
+    style CLIENT fill:#ffffff,stroke:#cbd5e1,stroke-width:1px
 ```
 
 ---
