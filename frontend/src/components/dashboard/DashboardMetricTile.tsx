@@ -6,11 +6,15 @@ import {
   Waves,
   Gauge,
   Droplets,
-  Wind
+  Wind,
+  Compass,
+  Move3d,
+  Activity
 } from 'lucide-react';
 import type { TelemetryPacket } from '../../types/telemetry';
 import type { DashboardCardConfig, MetricKey } from '../../types/dashboard';
 import type { GasThresholdConfig } from '../../constants/gasThresholds';
+import { AVAILABLE_METRICS } from '../../constants/dashboardDefaults';
 import { MetricCard } from '../MetricCard';
 
 interface DashboardMetricTileProps {
@@ -30,39 +34,36 @@ export const DashboardMetricTile: React.FC<DashboardMetricTileProps> = ({
   isDragging
 }) => {
   const mKey = card.metricKey as MetricKey;
+  const def = AVAILABLE_METRICS.find((m) => m.key === mKey) || {
+    key: mKey,
+    title: mKey.toUpperCase(),
+    unit: '',
+    subtitle: '',
+    domain: 'motion'
+  };
 
-  let title = 'METRIC';
-  let unit = '';
-  let subtitle = '';
-  let icon = <Zap style={{ width: '18px', height: '18px', color: '#64748b' }} />;
+  let title = def.title;
+  let unit = def.unit;
+  let subtitle = def.subtitle;
+  let icon = <Activity style={{ width: '18px', height: '18px', color: '#64748b' }} />;
   let isHazard = false;
   let hazardText = '';
   let hazardBorderColor: string | undefined;
   let hazardBgColor: string | undefined;
   let accentColor = '#0f172a';
   let customValueDisplay: React.ReactNode = undefined;
-  let val: number | null | undefined = null;
+  let val: number | null | undefined = latest ? (latest as any)[mKey] : null;
 
   if (mKey === 'voltage') {
-    title = 'WATER VOLTAGE';
-    val = latest?.voltage;
-    unit = 'V';
-    subtitle = 'Water Probes (Safe 0V)';
     isHazard = !!(val !== null && val !== undefined && val > 5.0);
     hazardText = '⚠️ ELECTRIFICATION HAZARD';
     hazardBorderColor = '#f87171';
     hazardBgColor = '#fef2f2';
     icon = <Zap style={{ width: '18px', height: '18px', color: isHazard ? '#dc2626' : '#d97706' }} />;
-  } else if (mKey === 'current_ma') {
-    title = 'CURRENT';
-    val = latest?.current_ma;
-    unit = 'A';
-    subtitle = 'Electric Current Flow';
+  } else if (mKey === 'current_ma' || mKey === 'power' || mKey === 'energy' || mKey === 'frequency' || mKey === 'pf') {
     accentColor = '#7c3aed';
     icon = <Zap style={{ width: '18px', height: '18px', color: '#7c3aed' }} />;
   } else if (mKey === 'is_upright') {
-    title = 'UPRIGHT STATUS';
-    subtitle = 'Pole Vertical Alignment';
     const isUprightDown = latest?.is_upright === false;
     isHazard = isUprightDown;
     hazardText = '⚠️ Pole Down / Fall Detected';
@@ -72,13 +73,7 @@ export const DashboardMetricTile: React.FC<DashboardMetricTileProps> = ({
       <ShieldCheck style={{ width: '18px', height: '18px', color: '#059669' }} />
     );
     customValueDisplay = (
-      <div
-        style={{
-          fontSize: '1.6rem',
-          fontWeight: '700',
-          color: isUprightDown ? '#dc2626' : latest?.is_upright ? '#059669' : '#64748b'
-        }}
-      >
+      <div style={{ fontSize: '1.6rem', fontWeight: '700', color: isUprightDown ? '#dc2626' : latest?.is_upright ? '#059669' : '#64748b' }}>
         {latest?.is_upright === true ? 'UPRIGHT' : latest?.is_upright === false ? 'TILT ALERT' : (
           <span style={{ fontSize: '13px', fontWeight: '500', color: '#94a3b8', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#cbd5e1' }} />
@@ -87,71 +82,47 @@ export const DashboardMetricTile: React.FC<DashboardMetricTileProps> = ({
         )}
       </div>
     );
+  } else if (mKey === 'tilt_angle' || mKey === 'pitch' || mKey === 'roll') {
+    accentColor = '#8b5cf6';
+    icon = <Compass style={{ width: '18px', height: '18px', color: '#8b5cf6' }} />;
+    if (mKey === 'tilt_angle') {
+      isHazard = !!(val !== null && val !== undefined && val >= 15.0);
+      hazardText = '⚠️ Landslide Ground Shift';
+      hazardBorderColor = '#f87171';
+      hazardBgColor = '#fef2f2';
+      icon = <AlertTriangle style={{ width: '18px', height: '18px', color: isHazard ? '#dc2626' : '#8b5cf6' }} />;
+    }
   } else if (mKey === 'water_depth') {
-    title = 'WATER DEPTH';
-    val = latest?.water_depth;
-    unit = 'cm';
-    subtitle = 'Submersion Level';
     accentColor = '#0284c7';
-    isHazard = !!(latest?.water_depth && latest.water_depth > 100.0);
+    isHazard = !!(val && val > 100.0);
     hazardText = '⚠️ High Flood Warning';
     hazardBorderColor = '#7dd3fc';
     hazardBgColor = '#f0f9ff';
     icon = <Waves style={{ width: '18px', height: '18px', color: '#0284c7' }} />;
-  } else if (mKey === 'temperature') {
-    title = 'TEMPERATURE';
-    val = latest?.temperature;
-    unit = '°C';
-    subtitle = 'Ambient Temperature';
+  } else if (mKey === 'temperature' || mKey === 'mpu_temperature') {
     accentColor = '#2563eb';
-    isHazard = !!(latest?.temperature && latest.temperature > 45.0);
+    isHazard = !!(val && val > 45.0);
     hazardText = '⚠️ High Thermal Alert';
     hazardBorderColor = '#fdba74';
     hazardBgColor = '#fff7ed';
     icon = <Gauge style={{ width: '18px', height: '18px', color: isHazard ? '#ea580c' : '#2563eb' }} />;
   } else if (mKey === 'humidity') {
-    title = 'HUMIDITY';
-    val = latest?.humidity;
-    unit = '%';
-    subtitle = 'Relative Humidity';
     accentColor = '#059669';
     isHazard = !!(val && val > 85.0);
     hazardText = '⚠️ Moisture Saturation';
     hazardBorderColor = '#86efac';
     hazardBgColor = '#f0fdf4';
     icon = <Droplets style={{ width: '18px', height: '18px', color: '#059669' }} />;
-  } else if (mKey === 'mq7') {
-    title = 'CARBON MONOXIDE';
-    val = latest?.mq7;
-    unit = 'ppm';
-    subtitle = 'Carbon Monoxide';
-    isHazard = !!(latest?.mq7 && latest.mq7 > gasThresholds.mq7);
-    hazardText = '⚠️ High CO Level';
+  } else if (mKey === 'mq7' || mKey === 'mq135' || mKey === 'mq136' || mKey === 'mq2') {
+    const limit = mKey === 'mq7' ? gasThresholds.mq7 : mKey === 'mq135' ? gasThresholds.mq135 : gasThresholds.mq136;
+    isHazard = !!(val && val > limit);
+    hazardText = `⚠️ High ${def.title}`;
     hazardBorderColor = '#fdba74';
     hazardBgColor = '#fff7ed';
     icon = <Wind style={{ width: '18px', height: '18px', color: isHazard ? '#ea580c' : '#475569' }} />;
-  } else if (mKey === 'mq135') {
-    title = 'AIR QUALITY';
-    val = latest?.mq135;
-    unit = 'ppm';
-    subtitle = 'Air Pollution / NH3 / NOx';
-    accentColor = '#9333ea';
-    isHazard = !!(latest?.mq135 && latest.mq135 > gasThresholds.mq135);
-    hazardText = '⚠️ Hazardous Air Quality';
-    hazardBorderColor = '#d8b4fe';
-    hazardBgColor = '#faf5ff';
-    icon = <Wind style={{ width: '18px', height: '18px', color: isHazard ? '#9333ea' : '#475569' }} />;
-  } else if (mKey === 'mq136') {
-    title = 'SEWAGE GAS';
-    val = latest?.mq136;
-    unit = 'ppm';
-    subtitle = 'Sewage Gas / Toxic Vapors';
-    accentColor = '#dc2626';
-    isHazard = !!(latest?.mq136 && latest.mq136 > gasThresholds.mq136);
-    hazardText = '⚠️ Toxic Sewage Gas';
-    hazardBorderColor = '#fca5a5';
-    hazardBgColor = '#fef2f2';
-    icon = <Wind style={{ width: '18px', height: '18px', color: isHazard ? '#dc2626' : '#475569' }} />;
+  } else if (mKey.startsWith('accel_') || mKey.startsWith('gyro_')) {
+    accentColor = '#0891b2';
+    icon = <Move3d style={{ width: '18px', height: '18px', color: '#0891b2' }} />;
   }
 
   return (

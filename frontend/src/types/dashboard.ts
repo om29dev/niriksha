@@ -2,22 +2,35 @@ import type { PoleId } from './telemetry';
 
 export type CardType = 'metric' | 'chart';
 
+export type SensorDomain = 'electrical' | 'environment' | 'motion';
+
 export type MetricKey =
   | 'voltage'
   | 'current_ma'
-  | 'is_upright'
-  | 'water_depth'
+  | 'power'
+  | 'energy'
+  | 'frequency'
+  | 'pf'
   | 'temperature'
   | 'humidity'
   | 'mq7'
   | 'mq135'
-  | 'mq136';
-
-export type ChartKey =
-  | 'voltage'
-  | 'current_ma'
+  | 'mq136'
+  | 'mq2'
+  | 'mpu_temperature'
+  | 'is_upright'
   | 'water_depth'
-  | 'temperature';
+  | 'pitch'
+  | 'roll'
+  | 'tilt_angle'
+  | 'accel_x'
+  | 'accel_y'
+  | 'accel_z'
+  | 'gyro_x'
+  | 'gyro_y'
+  | 'gyro_z';
+
+export type ChartKey = MetricKey;
 
 export interface DashboardCardConfig {
   id: string;
@@ -34,6 +47,7 @@ export interface MetricDefinition {
   title: string;
   unit: string;
   subtitle: string;
+  domain: SensorDomain;
 }
 
 export interface ChartDefinition {
@@ -42,4 +56,5 @@ export interface ChartDefinition {
   subtitle: string;
   unit: string;
   strokeColor: string;
+  domain: SensorDomain;
 }

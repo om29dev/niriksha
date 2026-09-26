@@ -113,18 +113,22 @@ class MultiSensorFusionEngine:
                 "unit": "°C"
             })
 
-        # 3. Structural Tilt with Confirmation Filter (Reject transient vehicle vibration)
-        if is_upright is False:
+        # 3. Structural Tilt & Landslide Detection (SW-520D and MPU6050 Tilt Angle)
+        tilt_angle = packet.get("tilt_angle")
+        is_tilted = (is_upright is False) or (tilt_angle is not None and tilt_angle >= 15.0)
+
+        if is_tilted:
             self._tilt_counters[pole_id] = self._tilt_counters.get(pole_id, 0) + 1
-            if self._tilt_counters[pole_id] >= 2:  # Sustained over >= 2 readings
+            if self._tilt_counters[pole_id] >= 2:
+                angle_str = f" ({tilt_angle:.1f}°)" if tilt_angle is not None else ""
                 alerts_to_raise.append({
                     "pole_id": pole_id,
-                    "alert_type": "tilt_collapse",
+                    "alert_type": "landslide_tilt" if tilt_angle is not None and tilt_angle >= 15.0 else "tilt_collapse",
                     "severity": "critical",
-                    "title": "Structural Tilt / Pole Collapse Detected",
-                    "description": "Sustained horizontal tilt reported by SW-520D sensor.",
-                    "trigger_value": 0.0,
-                    "unit": ""
+                    "title": f"Landslide / Structural Tilt Hazard{angle_str}",
+                    "description": "Sustained ground inclination or pole tilt breach confirmed by IMU/tilt sensors.",
+                    "trigger_value": float(tilt_angle) if tilt_angle is not None else 0.0,
+                    "unit": "°" if tilt_angle is not None else ""
                 })
         else:
             self._tilt_counters[pole_id] = 0

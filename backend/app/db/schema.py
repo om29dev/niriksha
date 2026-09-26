@@ -29,6 +29,16 @@ async def create_tables_and_indexes(conn: asyncpg.Connection):
             mq135 DOUBLE PRECISION,
             mq136 DOUBLE PRECISION,
             mq2 DOUBLE PRECISION,
+            accel_x DOUBLE PRECISION,
+            accel_y DOUBLE PRECISION,
+            accel_z DOUBLE PRECISION,
+            gyro_x DOUBLE PRECISION,
+            gyro_y DOUBLE PRECISION,
+            gyro_z DOUBLE PRECISION,
+            pitch DOUBLE PRECISION,
+            roll DOUBLE PRECISION,
+            tilt_angle DOUBLE PRECISION,
+            mpu_temperature DOUBLE PRECISION,
             sensors_json JSONB,
             status VARCHAR(32) DEFAULT 'NORMAL',
             source VARCHAR(64),
@@ -52,6 +62,16 @@ async def create_tables_and_indexes(conn: asyncpg.Connection):
         ("mq135", "DOUBLE PRECISION"),
         ("mq136", "DOUBLE PRECISION"),
         ("mq2", "DOUBLE PRECISION"),
+        ("accel_x", "DOUBLE PRECISION"),
+        ("accel_y", "DOUBLE PRECISION"),
+        ("accel_z", "DOUBLE PRECISION"),
+        ("gyro_x", "DOUBLE PRECISION"),
+        ("gyro_y", "DOUBLE PRECISION"),
+        ("gyro_z", "DOUBLE PRECISION"),
+        ("pitch", "DOUBLE PRECISION"),
+        ("roll", "DOUBLE PRECISION"),
+        ("tilt_angle", "DOUBLE PRECISION"),
+        ("mpu_temperature", "DOUBLE PRECISION"),
     ]
     for col_name, col_type in columns_to_check:
         await conn.execute(f"""
@@ -101,7 +121,7 @@ async def _configure_timescaledb_if_available(conn: asyncpg.Connection):
     try:
         is_avail = await conn.fetchval("SELECT count(1) FROM pg_available_extensions WHERE name = 'timescaledb'")
         if not is_avail:
-            logger.info("TimescaleDB extension not present in PostgreSQL binary; running on optimized standard PostgreSQL.")
+            logger.info("TimescaleDB extension not present; running on optimized PostgreSQL.")
             return
 
         await conn.execute("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;")
@@ -118,9 +138,6 @@ async def _configure_timescaledb_if_available(conn: asyncpg.Connection):
                     migrate_data => TRUE
                 );
             """)
-            logger.info("TimescaleDB hypertable successfully configured on 'telemetry' table.")
-        else:
-            logger.info("TimescaleDB hypertable active on 'telemetry'.")
+            logger.info("TimescaleDB hypertable active.")
     except Exception as e:
-        logger.warning(f"TimescaleDB initialization skipped or failed: {e}")
-
+        logger.warning(f"TimescaleDB initialization skipped: {e}")

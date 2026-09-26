@@ -1,5 +1,6 @@
 import time
 from typing import Dict, Any, Optional
+from app.analytics.tilt_kinematics import compute_tilt_angles
 
 
 def normalize_mesh_packet(data: Dict[str, Any], source: str, seq: int = 1) -> Dict[str, Any]:
@@ -21,6 +22,25 @@ def normalize_mesh_packet(data: Dict[str, Any], source: str, seq: int = 1) -> Di
     energy_val = data.get("energy")
     freq_val = data.get("frequency")
     pf_val = data.get("pf")
+
+    # MPU6050 Accelerometer & Gyroscope
+    ax_val = data.get("accel_x")
+    ay_val = data.get("accel_y")
+    az_val = data.get("accel_z")
+    gx_val = data.get("gyro_x")
+    gy_val = data.get("gyro_y")
+    gz_val = data.get("gyro_z")
+    mpu_temp = data.get("mpu_temperature")
+
+    # Derive Pitch, Roll, and Total Tilt Deviation
+    angles = compute_tilt_angles(ax_val, ay_val, az_val)
+    pitch_val = angles["pitch"]
+    roll_val = angles["roll"]
+    tilt_angle_val = angles["tilt_angle"]
+
+    # If pole 3 has MPU6050, derive is_upright if not explicitly provided
+    if is_upright_val is None and tilt_angle_val is not None:
+        is_upright_val = (tilt_angle_val < 15.0)
 
     # Gas sensors: calculate ppm estimates if raw ADC provided
     mq7_val = data.get("mq7")
@@ -59,7 +79,17 @@ def normalize_mesh_packet(data: Dict[str, Any], source: str, seq: int = 1) -> Di
         "mq7": sensor_entry(mq7_val, "ppm"),
         "mq135": sensor_entry(mq135_val, "ppm"),
         "mq136": sensor_entry(mq136_val, "ppm"),
-        "mq2": sensor_entry(mq2_val, "ppm")
+        "mq2": sensor_entry(mq2_val, "ppm"),
+        "accel_x": sensor_entry(ax_val, "m/s²"),
+        "accel_y": sensor_entry(ay_val, "m/s²"),
+        "accel_z": sensor_entry(az_val, "m/s²"),
+        "gyro_x": sensor_entry(gx_val, "°/s"),
+        "gyro_y": sensor_entry(gy_val, "°/s"),
+        "gyro_z": sensor_entry(gz_val, "°/s"),
+        "pitch": sensor_entry(pitch_val, "°"),
+        "roll": sensor_entry(roll_val, "°"),
+        "tilt_angle": sensor_entry(tilt_angle_val, "°"),
+        "mpu_temperature": sensor_entry(mpu_temp, "°C")
     }
 
     return {
@@ -81,6 +111,16 @@ def normalize_mesh_packet(data: Dict[str, Any], source: str, seq: int = 1) -> Di
         "mq135": sensors["mq135"]["val"],
         "mq136": sensors["mq136"]["val"],
         "mq2": sensors["mq2"]["val"],
+        "accel_x": ax_val,
+        "accel_y": ay_val,
+        "accel_z": az_val,
+        "gyro_x": gx_val,
+        "gyro_y": gy_val,
+        "gyro_z": gz_val,
+        "pitch": pitch_val,
+        "roll": roll_val,
+        "tilt_angle": tilt_angle_val,
+        "mpu_temperature": mpu_temp,
         "sensors": sensors,
         "source": source
     }

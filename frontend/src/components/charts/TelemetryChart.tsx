@@ -59,7 +59,8 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
     }
 
     const padding = (max - min) * 0.15;
-    return [Math.max(0, Math.floor(min - padding)), Math.ceil(max + padding)];
+    const lower = min < 0 ? Math.floor(min - padding) : Math.max(0, Math.floor(min - padding));
+    return [lower, Math.ceil(max + padding)];
   }, [data, dataKey]);
 
   // Current latest reading for quick reference in header

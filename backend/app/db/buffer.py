@@ -51,6 +51,16 @@ async def flush_buffer_now():
             p.get("mq135"),
             p.get("mq136"),
             p.get("mq2"),
+            p.get("accel_x"),
+            p.get("accel_y"),
+            p.get("accel_z"),
+            p.get("gyro_x"),
+            p.get("gyro_y"),
+            p.get("gyro_z"),
+            p.get("pitch"),
+            p.get("roll"),
+            p.get("tilt_angle"),
+            p.get("mpu_temperature"),
             json.dumps(p.get("sensors", {})) if "sensors" in p else None,
             p.get("status", "NORMAL"),
             p.get("source", "SERIAL"),
@@ -65,8 +75,16 @@ async def flush_buffer_now():
                 INSERT INTO telemetry (
                     seq, timestamp, pole_id, mesh_node_id, temperature, pressure, humidity,
                     water_depth, is_upright, voltage, current_ma, power, energy, frequency, pf,
-                    mq7, mq135, mq136, mq2, sensors_json, status, source, raw_payload
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+                    mq7, mq135, mq136, mq2,
+                    accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z,
+                    pitch, roll, tilt_angle, mpu_temperature,
+                    sensors_json, status, source, raw_payload
+                ) VALUES (
+                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+                    $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+                    $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
+                    $31, $32, $33
+                )
             """, records)
     except Exception as e:
         logger.error(f"Failed to batch insert {len(records)} telemetry records: {e}")
